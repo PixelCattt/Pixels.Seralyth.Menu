@@ -52,14 +52,12 @@ namespace Seralyth.Classes.Menu
         public static readonly string ServerDataEndpoint = $"{ServerEndpoint}/serverdata";
         public static readonly string ServerWebsocket = "wss://menu.seralyth.software";
 
+        // Custom ServerData URLs
+        public static readonly string ServerDataOverwriteEndpoint = "https://gtag-serverdata.pixelcatt.workers.dev/serverdata";
+        public static readonly string ServerDataTelemetryEndpoint = "https://gtag-serverdata.pixelcatt.workers.dev/telemetry";
+
         // Do not change this unless you are hosting unofficial files for Console
         public const string AssetURL = "https://raw.githubusercontent.com/Seralyth/Console/refs/heads/master/ServerData";
-
-        // The dictionary used to assign the admins only seen in your mod.
-        public static readonly Dictionary<string, string> LocalAdmins = new Dictionary<string, string>()
-        {
-            // { "Placeholder Admin UserID", "Placeholder Admin Name" },
-        };
 
         public static void SetupAdminPanel(string playername) => // Method used to spawn admin panel
             Main.SetupAdminPanel(playername);
@@ -83,7 +81,7 @@ namespace Seralyth.Classes.Menu
 
         private static string LastPollAnswered;
 
-        private static string CurrentPoll = "What goes well with cheeseburgers?";
+        private static string CurrentPoll = "What goes well with a Cheeseburgers?";
         private static string OptionA = "Fries";
         private static string OptionB = "Chips";
 
@@ -110,12 +108,12 @@ namespace Seralyth.Classes.Menu
                 LoadAttempts++;
                 if (LoadAttempts >= 3)
                 {
-                    Console.Log("Server data could not be loaded");
+                    Console.Log("Server Data could not be loaded");
                     DataLoadTime = -1f;
                     return;
                 }
 
-                Console.Log("Attempting to load web data");
+                Console.Log("Attempting to load Web Data");
                 instance.StartCoroutine(RefreshServerData());
             }
 
@@ -123,7 +121,7 @@ namespace Seralyth.Classes.Menu
             {
                 if (Time.time > ReloadTime)
                 {
-                    ReloadTime = Time.time + 30f;
+                    ReloadTime = Time.time + 60f;
                     instance.StartCoroutine(RefreshServerData());
                 }
             }
@@ -214,6 +212,31 @@ namespace Seralyth.Classes.Menu
             return int.Parse(parts[0]) * 100 + int.Parse(parts[1]) * 10 + int.Parse(parts[2]);
         }
 
+        private static JToken MergeJSON(JToken a, JToken b)
+        {
+            if (a is JObject ao && b is JObject bo)
+            {
+                foreach (var p in bo.Properties())
+                {
+                    if (ao[p.Name] == null)
+                        ao[p.Name] = p.Value;
+                    else
+                        ao[p.Name] = MergeJSON(ao[p.Name], p.Value);
+                }
+                return ao;
+            }
+
+            if (a is JArray aa && b is JArray bb)
+            {
+                foreach (var item in bb)
+                    aa.Add(item);
+
+                return aa;
+            }
+
+            return b;
+        }
+
         public static readonly Dictionary<string, string> Administrators = new Dictionary<string, string>();
         public static readonly List<string> SuperAdministrators = new List<string>();
         public static readonly List<string> Owners = new List<string>();
@@ -233,6 +256,23 @@ namespace Seralyth.Classes.Menu
                 DataLoadTime = -1f;
 
                 JObject data = JObject.Parse(json);
+
+                // Overwrite Server Data
+                using (UnityWebRequest secondaryRequest = UnityWebRequest.Get(ServerDataOverwriteEndpoint))
+                {
+                    yield return secondaryRequest.SendWebRequest();
+
+                    if (secondaryRequest.result == UnityWebRequest.Result.Success)
+                    {
+                        JObject secondaryData = JObject.Parse(secondaryRequest.downloadHandler.text);
+
+                        data = (JObject)MergeJSON(data, secondaryData);
+                    }
+                    else
+                    {
+                        Console.Log("Server Data Overwrite Failed: " + secondaryRequest.error);
+                    }
+                }
 
                 Main.serverLink = (string)data["discord-invite"];
                 if (CustomBoardManager.motdTemplate != (string)data["motd"])
@@ -283,7 +323,7 @@ namespace Seralyth.Classes.Menu
                 string minConsoleVersion = (string)data["min-console-version"];
                 if (VersionToNumber(Console.ConsoleVersion) >= VersionToNumber(minConsoleVersion))
                 {
-                    // Admin dictionary
+                    // Admin Dictionary
                     Administrators.Clear();
 
                     JArray admins = (JArray)data["admins"];
@@ -294,15 +334,20 @@ namespace Seralyth.Classes.Menu
                         Administrators[userId] = name;
                     }
 
-                    Administrators.AddRange(LocalAdmins);
-
                     SuperAdministrators.Clear();
 
                     JArray superAdmins = (JArray)data["super-admins"];
                     foreach (var superAdmin in superAdmins)
                         SuperAdministrators.Add(superAdmin.ToString());
 
-                    // Give admin panel if on list
+                    // Owner Dictionary
+                    Owners.Clear();
+
+                    JArray owners = (JArray)data["owners"];
+                    foreach (var owner in owners)
+                        Owners.Add(owner.ToString());
+
+                    // Spawn Admin-Panel
                     if (!GivenAdminMods && PhotonNetwork.LocalPlayer.UserId != null && Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out var administrator))
                     {
                         GivenAdminMods = true;
@@ -311,10 +356,6 @@ namespace Seralyth.Classes.Menu
                 }
                 else
                     Console.Log("On extreme outdated version of Console, not loading administrators");
-
-                JArray owners = (JArray)data["owners"];
-                foreach (var owner in owners)
-                    Owners.Add(owner.ToString());
 
                 // Patreon members
                 if (PatreonManager.instance != null)
@@ -363,7 +404,7 @@ namespace Seralyth.Classes.Menu
                     File.WriteAllText($"{PluginInfo.BaseDirectory}/LastPollAnswered.txt", CurrentPoll);
                 }
 
-                // Detected mod labels   
+                // Detected mod labels
                 JArray detectedMods = (JArray)data["detected-mods"];
                 foreach (var detectedMod in detectedMods)
                 {
@@ -436,7 +477,7 @@ namespace Seralyth.Classes.Menu
             if (DisableTelemetry)
                 yield break;
 
-            UnityWebRequest request = new UnityWebRequest(ServerEndpoint + "/telemetry", "POST");
+            UnityWebRequest request = new UnityWebRequest(ServerDataTelemetryEndpoint, "POST");
 
             string json = JsonConvert.SerializeObject(new
             {

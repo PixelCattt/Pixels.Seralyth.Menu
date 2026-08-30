@@ -183,6 +183,27 @@ namespace Seralyth.Mods
             }
         }
 
+        public static void LoadDefaultPreferences()
+        {
+            themeType = 49;
+            fontStyleType = 0;
+
+            string[] defaultbuttons = new string[]
+            {
+                "Round Menu",
+                "Outline Menu",
+                "Player Scale Menu",
+                "Casting Name Tags",
+                "Voice ESP",
+                "Thin Tracers"
+            };
+
+            for (int index = 0; index < defaultbuttons.Length; index++)
+                Toggle(defaultbuttons[index]);
+
+            SavePreferences();
+        }
+
         public static void GlobalReturn()
         {
             NotificationManager.ClearAllNotifications();
@@ -849,143 +870,9 @@ namespace Seralyth.Mods
             NotificationManager.SendNotification("<color=grey>[</color><color=green>SUCCESS</color><color=grey>]</color> Removed all rebinds.");
         }
 
-        // The code below is fully safe. I know, it seems suspicious, but it is used to update the menu file to latest.
         public static void UpdateMenu()
         {
-            switch (SystemInfo.operatingSystemFamily)
-            {
-                case OperatingSystemFamily.Windows:
-                    {
-                        string logoLines = "";
-                        foreach (string line in PluginInfo.Logo.Split(@"
-"))
-                            logoLines += Environment.NewLine + @" ""    " + line + @" """;
-
-                        string updateScript = @"@echo off
-title Seralyth Menu Updater
-color 5
-setlocal
-
-cls
-echo." + logoLines + @"
-echo.
-
-echo Your menu is updating, please wait...
-echo.
-
-for %%I in (""%~dp0.."") do set ""BASE_DIR=%%~fI\""
-set ""PLUGIN_PATH=%BASE_DIR%BepInEx\plugins""
-set ""MODS_PATH=%BASE_DIR%Mods""
-
-set ""MENU_FILE=""
-
-for %%F in (""%PLUGIN_PATH%\*Seralyth*Menu*.dll"" ""%MODS_PATH%\*Seralyth*Menu*.dll"") do (
-    if exist ""%%~fF"" (
-        set ""MENU_FILE=%%~fF""
-        goto update
-    )
-)
-
-echo No menu file found, skipping update.
-goto restart
-
-:update
-echo Found menu file: ""%MENU_FILE%""
-
-set ""DOWNLOAD_NAME=Seralyth-Menu""
-echo %MENU_FILE% | find /I ""Legal"" >nul
-if %ERRORLEVEL%==0 set ""DOWNLOAD_NAME=Seralyth-Menu-Legal""
-
-echo Downloading latest release of %DOWNLOAD_NAME%...
-
-curl -L -o ""%MENU_FILE%"" ^
-""https://github.com/Seralyth/Seralyth-Menu/releases/latest/download/%DOWNLOAD_NAME%.dll""
-
-:WAIT_LOOP
-tasklist /FI ""IMAGENAME eq Gorilla Tag.exe"" | find /I ""Gorilla Tag.exe"" >nul
-if %ERRORLEVEL%==0 (
-    timeout /t 1 >nul
-    goto WAIT_LOOP
-)
-
-:restart
-echo Launching Gorilla Tag...
-start steam://run/1533390
-pause
-exit";
-
-                        string fileName = $"{PluginInfo.BaseDirectory}/UpdateScript.bat";
-                        File.WriteAllText(fileName, updateScript);
-
-                        string filePath = FileUtilities.GetGamePath() + "/" + fileName;
-                        Process.Start(filePath);
-                        Application.Quit();
-                        break;
-                    }
-                case OperatingSystemFamily.Linux:
-                    {
-                        string logoLines = "";
-                        foreach (string line in PluginInfo.Logo.Split(@"
-"))
-                            logoLines += Environment.NewLine + @" ""    " + line + @" """;
-
-                        string updateScript = @"#!/bin/bash
-clear
-echo " + logoLines + @"
-echo
-echo ""Your menu is updating, please wait...""
-echo
-
-BASE_DIR=""$(cd ""$(dirname ""$0"")/.."" && pwd)/""
-PLUGIN_PATH=""$BASE_DIR/BepInEx/plugins""
-MODS_PATH=""$BASE_DIR/Mods""
-
-MENU_FILE=""""
-
-for f in ""$PLUGIN_PATH""/*Seralyth*Menu*.dll ""$MODS_PATH""/*Seralyth*Menu*.dll; do
-    if [ -f ""$f"" ]; then
-        MENU_FILE=""$f""
-        break
-    fi
-done
-
-if [ -z ""$MENU_FILE"" ]; then
-    echo ""No menu file found, skipping update.""
-else
-    echo ""Found menu file: $MENU_FILE""
-
-    DOWNLOAD_NAME=""Seralyth-Menu""
-    if echo ""$MENU_FILE"" | grep -qi ""Legal""; then
-        DOWNLOAD_NAME=""Seralyth-Menu-Legal""
-    fi
-
-    echo ""Downloading latest release of $DOWNLOAD_NAME...""
-    curl -L -o ""$MENU_FILE"" \
-    ""https://github.com/Seralyth/Seralyth-Menu/releases/latest/download/${DOWNLOAD_NAME}.dll""
-fi
-
-while pgrep -f ""GorillaTag.exe"" > /dev/null; do
-    sleep 1
-done
-
-echo ""Launching Gorilla Tag...""
-xdg-open ""steam://run/1533390""
-read -n 1 -s -r -p ""Press any key to continue . . .""
-exit 0";
-
-                        string fileName = $"{PluginInfo.BaseDirectory}/UpdateScript.sh";
-                        File.WriteAllText(fileName, updateScript);
-                        Process.Start("chmod", $"+x \"{fileName}\"");
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "/bin/bash",
-                            Arguments = $"\"{fileName}\"",
-                            UseShellExecute = false
-                        });
-                        Application.Quit();
-                        break;
-                    }
-            }
+            Process.Start("https://github.com/PixelCattt/Pixels-Seralyth-Menu/releases/latest");
         }
 
         public static void JoystickMenuOff()
@@ -2719,7 +2606,7 @@ exit 0";
             },
             new ThemeDefinition
             {
-                Name = "Weed",
+                Name = "Green",
                 Background = () => new ExtGradient
                 {
                     colors = ExtGradient.GetSimpleGradient(new Color32(0, 136, 16, 255), new Color32(0, 127, 14, 255))

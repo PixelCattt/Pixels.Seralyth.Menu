@@ -19,6 +19,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// New Seralyth Changes: https://github.com/Seralyth/Seralyth-Menu/compare/57bf9df...master
+// All PSM Changes: https://github.com/PixelCattt/Pixels-Seralyth-Menu/compare/57bf9df...master
+
 namespace Seralyth
 {
     public class PluginInfo
@@ -26,8 +29,8 @@ namespace Seralyth
         public const string GUID = "org.seralyth.gorillatag.seralythmenu";
         public const string Name = "Seralyth Menu";
         public const string Description = "Community powered mod menu for Gorilla Tag.";
-        public const string BuildTimestamp = "2026-08-14T22:16:39Z";
-        public const string Version = "5.0.2";
+        public const string BuildTimestamp = "2026-08-31T19:43:16Z";
+        public const string Version = "9.0.0";
 
         public const string BaseDirectory =
 #if LEGAL || LEGAL_DEBUG

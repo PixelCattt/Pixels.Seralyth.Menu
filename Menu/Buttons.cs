@@ -104,6 +104,9 @@ namespace Seralyth.Menu
             new[] { // Menu Settings [2]
                 new ButtonInfo { buttonText = "Exit Menu Settings", method =() => CurrentCategoryName = "Settings", isTogglable = false, toolTip = "Returns you back to the settings menu.", legal = true},
 
+                new ButtonInfo { buttonText = "Hide GUI on PC", enableMethod = UI.Instance.DisableGUI, disableMethod = UI.Instance.EnableGUI, toolTip = "Hides the GUI on the PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Only Room Code on PC", enableMethod = UI.Instance.EnableOnlyCodeGUI, disableMethod = UI.Instance.DisableOnlyCodeGUI, toolTip = "Only shows the Room Code on the PC Screen.", legal = true},
+
                 new ButtonInfo { buttonText = "Right Hand", enableMethod = Settings.RightHand, disableMethod = Settings.LeftHand, toolTip = "Puts the menu on your right hand.", legal = true},
                 new ButtonInfo { buttonText = "Both Hands", enableMethod =() => bothHands = true, disableMethod =() => bothHands = false, toolTip = "Puts the menu on your both of your hands.", legal = true},
 
@@ -572,8 +575,13 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Anti Name Ban", enableMethod =() => BanPatches.enabled = true, method = Safety.AntiNameBan, disableMethod =() => BanPatches.enabled = false, toolTip = "Prevents you from getting banned for setting your name to bad things."},
                 new ButtonInfo { buttonText = "Anti Stump Kick", enableMethod =() => GroupPatch.enabled = true, disableMethod =() => GroupPatch.enabled = false, toolTip = "Stops people from group kicking you.", legal = true},
                 new ButtonInfo { buttonText = "Auto Clear Cache", method = Safety.AutoClearCache, toolTip = "Automatically clears your game's cache (garbage collector) every minute to prevent memory leaks.", legal = true},
-                new ButtonInfo { buttonText = "Anti Moderator", method = Safety.AntiModerator, toolTip = "When someone with the stick joins, you get disconnected and their player ID and room code gets saved to a file."},
-                new ButtonInfo { buttonText = "Anti Content Creator", method = Safety.AntiContentCreator, toolTip = "When a content creator joins, you get disconnected and their player ID and room code gets saved to a file."},
+
+                new ButtonInfo { buttonText = "Anti Moderator <color=grey>[</color><color=green>Disconnect</color><color=grey>]</color>", method = Safety.AntiModeratorDisconnect, toolTip = "When someone with the stick joins, you get disconnected and their player ID and room code gets saved to a file."},
+                new ButtonInfo { buttonText = "Anti Moderator <color=grey>[</color><color=green>Notify</color><color=grey>]</color>", method = Safety.AntiModeratorNotify, toolTip = "Tells you, when someone with the stick joins."},
+
+                new ButtonInfo { buttonText = "Anti Content Creator <color=grey>[</color><color=green>Disconnect</color><color=grey>]</color>", method = Safety.AntiContentCreatorDisconnect, toolTip = "When a content creator joins, you get disconnected and their player ID and room code gets saved to a file."},
+                new ButtonInfo { buttonText = "Anti Content Creator <color=grey>[</color><color=green>Notify</color><color=grey>]</color>", method = Safety.AntiContentCreatorNotify, toolTip = "Tells you, when a content creator joins."},
+
                 new ButtonInfo { buttonText = "Cosmetic Notifications", method = Safety.CosmeticNotifications, toolTip = "Sends you a notification if there is a Finger Painter, Illustrator, Administrator, Stick, Forest Guide, or Another Axiom Creator in your room."},
 
                 new ButtonInfo { buttonText = "Steam Detector", method = Important.SteamDetector, toolTip = "Detects when a player in your room is on Steam.", legal = true},
@@ -1206,14 +1214,23 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Get Builder Watch", method = Fun.GiveBuilderWatch, isTogglable = false, toolTip = "Gives you the builder watch without needing to be in attic."},
                 new ButtonInfo { buttonText = "Remove Builder Watch", method = Fun.RemoveBuilderWatch, isTogglable = false, toolTip = "Disables the builder watch."},
 
-                new ButtonInfo { buttonText = "Joystick Rope Control <color=grey>[</color><color=green>J</color><color=grey>]</color>", method = Overpowered.JoystickRopeControl, toolTip = "Control the ropes in the direction of your joystick."},
+                new ButtonInfo { buttonText = "Select Rope Gun", method =() => Overpowered.SelectRopeGun(), toolTip = "Select which Ropes to use for the Rope Mods."},
 
-                new ButtonInfo { buttonText = "Broken Ropes", method = Overpowered.SpazGrabbedRopes, toolTip = "Gives any ropes currently being held onto a seizure."},
-                new ButtonInfo { buttonText = "Spaz Rope Gun", method = Overpowered.SpazRopeGun, toolTip = "Gives whatever rope your hand desires a seizure."},
-                new ButtonInfo { buttonText = "Spaz All Ropes <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Overpowered.SpazAllRopes, toolTip = "Gives every rope a seizure when holding <color=green>trigger</color>."},
+                new ButtonInfo { buttonText = "Joystick Rope Control <color=grey>[</color><color=green>J</color><color=grey>]</color>", method =() => Overpowered.JoystickRopeControlAll(), toolTip = "Control All Ropes in the direction of your Joysticks."},
+                new ButtonInfo { buttonText = "Joystick Rope Control Selected <color=grey>[</color><color=green>J</color><color=grey>]</color>", method =() => Overpowered.JoystickRopeControlSelected(), toolTip = "Control All Selected Ropes in the direction of your Joysticks."},
+                new ButtonInfo { buttonText = "Joystick Rope Control Grabbed <color=grey>[</color><color=green>J</color><color=grey>]</color>", method =() => Overpowered.JoystickRopeControlGrabbed(), toolTip = "Control All Grabbed Ropes in the direction of your Joysticks."},
 
-                new ButtonInfo { buttonText = "Fling Rope Gun", method = Overpowered.FlingRopeGun, toolTip = "Flings whatever rope your hand desires away from you."},
-                new ButtonInfo { buttonText = "Fling All Ropes Gun", method = Overpowered.FlingAllRopesGun, toolTip = "Flings every rope in whatever direction your hand desires."},
+                new ButtonInfo { buttonText = "Spaz Rope Gun", method = Overpowered.SpazRopeGun, toolTip = "Gives whatever Rope your hand desires a seizure."},
+                new ButtonInfo { buttonText = "Spaz All Ropes <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Overpowered.SpazAllRopes, toolTip = "Gives All Ropes a seizure when holding <color=green>trigger</color>."},
+                new ButtonInfo { buttonText = "Spaz Selected Ropes <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Overpowered.SpazSelectedRopes, toolTip = "Gives All Selected Ropes a seizure when holding <color=green>trigger</color>."},
+                new ButtonInfo { buttonText = "Spaz Grabbed Ropes <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Overpowered.SpazGrabbedRopes, toolTip = "Gives All Grabbed Ropes a seizure when holding <color=green>trigger</color>."},
+
+                new ButtonInfo { buttonText = "Fling All Ropes Towards Gun", method = Overpowered.FlingAllRopesGun, toolTip = "Flings all Ropes toward wherever your hand desires."},
+                new ButtonInfo { buttonText = "Fling Selected Ropes Towards Gun", method = Overpowered.FlingSelectedRopesGun, toolTip = "Flings all Selected Ropes toward wherever your hand desires."},
+                new ButtonInfo { buttonText = "Fling Grabbed Ropes Towards Gun", method = Overpowered.FlingGrabbedRopesGun, toolTip = "Flings all Grabbed Ropes toward wherever your hand desires."},
+
+                new ButtonInfo { buttonText = "Pull Rope Here Gun", method = Overpowered.PullRopeGun, toolTip = "Flings whatever Rope your hand desires toward you."},
+                new ButtonInfo { buttonText = "Push Rope Away Gun", method = Overpowered.PushRopeGun, toolTip = "Flings whatever Rope your hand desires away from you."},
 
                 new ButtonInfo { buttonText = "Fast Gliders", enableMethod =() => Fun.ModifyGliderSpeed(0.5f, 0.5f), disableMethod =() => Fun.ModifyGliderSpeed(0.1f, 0.2f), toolTip = "Makes the gliders fast."},
                 new ButtonInfo { buttonText = "Slow Gliders", enableMethod =() => Fun.ModifyGliderSpeed(0.05f, 0.05f), disableMethod =() => Fun.ModifyGliderSpeed(0.1f, 0.2f), toolTip = "Makes the gliders slow."},
@@ -1358,6 +1375,11 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Spaz Tool Stations", method = Fun.SpazToolStations, toolTip = "Spazzes out the tool purchase stations in the horror map." },
                 new ButtonInfo { buttonText = "Purchase All Tool Stations", method = Fun.PurchaseAllToolStations, toolTip = "Makes every tool purchase station force purchase in the horror map." },
 
+                ButtonHelper.Create("Change Dig Gun Radius", () => Overpowered.digRadiusNames, Overpowered.digRadiusIndex, Overpowered.ApplyDigRadius, "Changes the Radius of the Dig Gun."),
+
+                new ButtonInfo { buttonText = "Dig Break Gun", method =() => Overpowered.DigGun(true), toolTip = "Digs out whatever your hand desires in the VIM Dig Map."},
+                new ButtonInfo { buttonText = "Dig Build Gun", method =() => Overpowered.DigGun(false), toolTip = "Builds wherever your hand desires in the VIM Dig Map."},
+
                 new ButtonInfo { buttonText = "Ghost Reactor Gate Spam <color=grey>[</color><color=green>G</color><color=grey>]</color>", method =() => Overpowered.SpamObjectGrip(Overpowered.ObjectByName["GhostReactorEnergyCostGate"]), toolTip = "Spawns gates out of your hand when holding <color=green>grip</color>."},
                 new ButtonInfo { buttonText = "Ghost Reactor Core Spam <color=grey>[</color><color=green>G</color><color=grey>]</color>", method =() => Overpowered.SpamObjectGrip(Overpowered.ObjectByName["GhostReactorCollectibleCore"]), toolTip = "Spawns collectible cores out of your hand when holding <color=green>grip</color>."},
                 new ButtonInfo { buttonText = "Ghost Reactor Slime Spam <color=grey>[</color><color=green>G</color><color=grey>]</color>", method =() => Overpowered.SpamObjectGrip(Overpowered.ObjectByName["GhostReactorCollectibleSentientCore"]), toolTip = "Spawns sentient collectible cores out of your hand when holding <color=green>grip</color>."},
@@ -1392,10 +1414,13 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Ghost Reactor Entity Aura", method = Overpowered.EntityAura, toolTip = "Creates a ball of random entities around you."},
                 new ButtonInfo { buttonText = "Ghost Reactor Entity Fountain", method = Overpowered.EntityFountain, toolTip = "Spurts random entities out of your head like a fountain."},
 
+                new ButtonInfo { buttonText = "Ghost Reactor Select Object", method = Overpowered.LoadSelectObject, isTogglable = false, toolTip = "Select which Ghost Reactor Object you want to Spawn."},
+                new ButtonInfo { buttonText = "Ghost Reactor Selected Object Gun", method = Overpowered.SpamSelectedObjectGun, toolTip = "Spawn your selected GR Object at wherever your hand desires."},
+
                 new ButtonInfo { buttonText = "Ghost Reactor Text Gun", enableMethod =() => PromptText("What text would you like to show?", () => Overpowered.textToRender = keyboardInput.ToUpper(), null, "Done", "Cancel"), method = Overpowered.GhostReactorTextGun, toolTip = "Spawns entities in the shape of the text you desire in the ghost reactor."},
                 new ButtonInfo { buttonText = "Ghost Reactor Draw Gun", method = Overpowered.GhostReactorDrawGun, toolTip = "Allows you to draw with entities in ghost reactor."},
 
-                new ButtonInfo { buttonText = "Destroy Entity Gun", method = Overpowered.DestroyEntityGun, toolTip = "Destroys any entity which your hand desires."},
+                new ButtonInfo { buttonText = "Ghost Reactor Destroy Entity Gun", method = Overpowered.DestroyEntityGun, toolTip = "Destroys any entity which your hand desires."},
 
                 new ButtonInfo { buttonText = "Infinite Jet Fuel", method =() => FuelPatch.enabled = true, disableMethod =() => FuelPatch.enabled = false, toolTip = "Gives the jet gadgets in Super Infection infinite fuel."},
                 new ButtonInfo { buttonText = "Infinite Platforms", method =() => PlatformPatch.enabled = true, disableMethod =() => PlatformPatch.enabled = false, toolTip = "Gives the platform spawner gadgets in Super Infection infinite platforms."},
@@ -2270,122 +2295,195 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Show Cosmetics", overlapText = "Show Cosmetics on Chams", toolTip = "If enabled, the cosmetics will also show through walls."}
             },
 
-            new[] { // Admin Mods (admins only) [23]
-                new ButtonInfo { buttonText = "Exit Admin Mods", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true},
+            new[] // Admin Mods [23]
+            {
+                new ButtonInfo { buttonText = "Exit Admin Mods", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page."},
 
-                new ButtonInfo { buttonText = "Mod Givers", method =() => CurrentCategoryName = "Mod Givers", isTogglable = false, toolTip = "Opens the mod givers page.", legal = true},
+                new ButtonInfo { buttonText = "Mod Givers", method =() => CurrentCategoryName = "Mod Givers", isTogglable = false, toolTip = "Opens the Mod Givers Page."},
 
-                new ButtonInfo { buttonText = "Get Menu Users", method = Experimental.GetMenuUsers, isTogglable = false, toolTip = "Detects who is using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Auto Get Menu Users", enableMethod =() => NetworkSystem.Instance.OnJoinedRoomEvent += Experimental.GetMenuUsers, disableMethod =() => NetworkSystem.Instance.OnJoinedRoomEvent -= Experimental.GetMenuUsers, isTogglable = true, toolTip = "Detects who is using the menu on room join.", legal = true},
-                new ButtonInfo { buttonText = "Menu User Name Tags", enableMethod = Experimental.EnableAdminMenuUserTags, method = Experimental.AdminMenuUserTags, disableMethod = Experimental.DisableAdminMenuUserTags, toolTip = "Puts nametags on menu users.", legal = true},
-                new ButtonInfo { buttonText = "Conduct Menu Users", enableMethod =() => { Experimental.EnableAdminMenuUserTags(); GetObject("Environment Objects/LocalObjects_Prefab/TreeRoom/CodeOfConductHeadingText").GetComponent<TextMeshPro>().text = "CONSOLE USER LIST"; GetObject("Environment Objects/LocalObjects_Prefab/TreeRoom/COCBodyText_TitleData").GetComponent<TextMeshPro>().richText = true; }, method = Experimental.ConsoleOnConduct, toolTip = "Shows menu users on the code of conduct.", legal = true},
-                new ButtonInfo { buttonText = "Menu User Tracers", enableMethod = Experimental.EnableAdminMenuUserTracers, method = Experimental.MenuUserTracers, disableMethod =() => {Visuals.isLineRenderQueued = true;}, toolTip = "Puts tracers on your right hand to menu users.", legal = true},
+                new ButtonInfo { buttonText = "Get Menu Users", method = AdminMods.GetMenuUsers, isTogglable = false, toolTip = "Detects who is using the menu."},
+                new ButtonInfo { buttonText = "Auto Get Menu Users", enableMethod =() => NetworkSystem.Instance.OnJoinedRoomEvent += AdminMods.GetMenuUsers, disableMethod =() => NetworkSystem.Instance.OnJoinedRoomEvent -= AdminMods.GetMenuUsers, isTogglable = true, toolTip = "Detects who is using the menu on room join."},
+                new ButtonInfo { buttonText = "Conduct Menu Users", enableMethod =() => { AdminMods.EnableMenuUserTags(); GetObject("Environment Objects/LocalObjects_Prefab/TreeRoom/CodeOfConductHeadingText").GetComponent<TextMeshPro>().text = "CONSOLE USER LIST"; GetObject("Environment Objects/LocalObjects_Prefab/TreeRoom/COCBodyText_TitleData").GetComponent<TextMeshPro>().richText = true; }, method = AdminMods.ConsoleOnConduct, toolTip = "Shows menu users on the code of conduct."},
 
-                new ButtonInfo { buttonText = "Admin Kick Gun", method = Experimental.AdminKickGun, toolTip = "Kicks whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Kick All", method = Experimental.AdminKickAll, isTogglable = false, toolTip = "Kicks everyone using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Menu User Name Tags", enableMethod = AdminMods.EnableMenuUserTags, method = AdminMods.MenuUserTags, disableMethod = AdminMods.DisableMenuUserTags, toolTip = "Puts nametags on menu users."},
+                new ButtonInfo { buttonText = "Menu User Tracers", enableMethod = AdminMods.EnableMenuUserTracers, method = AdminMods.MenuUserTracers, disableMethod =() => {Visuals.isLineRenderQueued = true;}, toolTip = "Puts tracers on your right hand to menu users."},
 
-                new ButtonInfo { buttonText = "Admin Crash Gun", method = Experimental.AdminCrashGun, toolTip = "Crashes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Crash All", method = Experimental.AdminCrashAll, toolTip = "Crashes everyone using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Flip Menu Gun", method = AdminMods.FlipMenuGun, toolTip = "Flips the menu of whoever your hand desires if they're using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Break Game Gun", method = Experimental.AdminCrashBypassGun, toolTip = "Crashes menu users who attempt to bypass crashers, also breaks the game.", legal = true},
+                new ButtonInfo { buttonText = "Admin Kick Gun", method = AdminMods.KickGun, toolTip = "Kicks whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Kick All", method = AdminMods.KickAll, isTogglable = false, toolTip = "Kicks everyone using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Flip Menu Gun", method = Experimental.FlipMenuGun, toolTip = "Flips the menu of whoever your hand desires if they're using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Crash Gun", method = AdminMods.CrashGun, toolTip = "Crashes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Crash All", method = AdminMods.CrashAll, toolTip = "Crashes everyone using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Freeze Gun", method =() => Experimental.AdminFreezeGun(true), toolTip = "Freezes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Unfreeze Gun", method =() => Experimental.AdminFreezeGun(false), toolTip = "Unfreezes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Spaz Freeze Gun", method =() => { Experimental.AdminFreezeGun(true); Experimental.AdminFreezeGun(false); }, toolTip = "Freezes and unfreezes whoever your hand desires if they're using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Break Game Gun", method = AdminMods.CrashBypassGun, toolTip = "Crashes Menu Users who attempt to bypass Crashers, also breaks the Game."},
 
-                new ButtonInfo { buttonText = "Admin Mute Gun", method =() => Experimental.AdminEnableGun(true, "Mute Microphone"), toolTip = "Mutes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Unmute Gun", method =() => Experimental.AdminEnableGun(false, "Mute Microphone"), toolTip = "Unmutes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Stutter Voice Gun", method =() => { Experimental.AdminEnableGun(true, "Mute Microphone"); Experimental.AdminEnableGun(false, "Mute Microphone"); }, toolTip = "Stutters the voice of whoever your hand desires by muting and unmuting them if they're using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Freeze Gun", method =() => AdminMods.FreezeGun(true), toolTip = "Freezes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Unfreeze Gun", method =() => AdminMods.FreezeGun(false), toolTip = "Unfreezes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Spaz Freeze Gun", method =() => { AdminMods.FreezeGun(true); AdminMods.FreezeGun(false); }, toolTip = "Freezes and unfreezes whoever your hand desires if they're using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Jumpscare Gun", method = Experimental.AdminJumpscareGun, toolTip = "Jumpscares whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Jumpscare All", method = Experimental.AdminJumpscareAll, isTogglable = false, toolTip = "Jumpscares everyone using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Jumpscare Gun", method = AdminMods.JumpscareGun, toolTip = "Jumpscares whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Jumpscare All", method = AdminMods.JumpscareAll, isTogglable = false, toolTip = "Jumpscares everyone using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Mute All <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Experimental.AdminMute, toolTip = "Mutes everyone while holding trigger.", legal = true},
+                new ButtonInfo { buttonText = "Admin Board Mute Gun", method =() => AdminMods.BMuteGun(true), toolTip = "Mutes whoever your hand desires for everyone using the menu."},
+                new ButtonInfo { buttonText = "Admin Board Unmute Gun", method =() => AdminMods.BMuteGun(false), toolTip = "Unmutes whoever your hand desires for everyone using the menu."},
+                new ButtonInfo { buttonText = "Admin Board Spaz Mute Gun", method =() => { AdminMods.BMuteGun(true); AdminMods.BMuteGun(false); }, toolTip = "Stutters the voice of whoever your hand desires for everyone using the menu by muting and unmuting them."},
 
-                new ButtonInfo { buttonText = "Admin Board Mute Gun", method =() => Experimental.AdminBMuteGun(true), toolTip = "Mutes whoever your hand desires for everyone using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Board Unmute Gun", method =() => Experimental.AdminBMuteGun(false), toolTip = "Unmutes whoever your hand desires for everyone using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Board Stutter Voice Gun", method =() => { Experimental.AdminBMuteGun(true); Experimental.AdminBMuteGun(false); }, toolTip = "Stutters the voice of whoever your hand desires for everyone using the menu by muting and unmuting them.", legal = true},
+                new ButtonInfo { buttonText = "Admin Board Mute All", method =() => AdminMods.BMuteAll(true), isTogglable = false, toolTip = "Mutes everyone for players using the menu."},
+                new ButtonInfo { buttonText = "Admin Board Unmute All", method =() => AdminMods.BMuteAll(false), isTogglable = false, toolTip = "Unmutes everyone for players using the menu."},
+                new ButtonInfo { buttonText = "Admin Board Spaz Mute All", method =() => { AdminMods.BMuteAll(true); AdminMods.BMuteAll(false); }, toolTip = "Stutters the voice of everyone for players using the menu by muting and unmuting them."},
 
-                new ButtonInfo { buttonText = "Admin Board Mute All", method =() => Experimental.AdminBMuteAll(true), isTogglable = false, toolTip = "Mutes everyone for players using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Board Unmute All", method =() => Experimental.AdminBMuteAll(false), isTogglable = false, toolTip = "Unmutes everyone for players using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Board Stutter Voice All", method =() => { Experimental.AdminBMuteAll(true); Experimental.AdminBMuteAll(false); }, toolTip = "Stutters the voice of everyone for players using the menu by muting and unmuting them.", legal = true},
+                new ButtonInfo { buttonText = "Admin Mute Gun", method =() => AdminMods.EnableGun(true, "Mute Microphone"), toolTip = "Mutes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Unmute Gun", method =() => AdminMods.EnableGun(false, "Mute Microphone"), toolTip = "Unmutes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Spaz Mute Gun", method =() => { AdminMods.EnableGun(true, "Mute Microphone"); AdminMods.EnableGun(false, "Mute Microphone"); }, toolTip = "Stutters the voice of whoever your hand desires by muting and unmuting them if they're using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Disable Menu Gun", method =() => Experimental.AdminLockdownGun(true), toolTip = "Disables the menu of whoever your hand desires if they're using one.", legal = true},
-                new ButtonInfo { buttonText = "Admin Enable Menu Gun", method =() => Experimental.AdminLockdownGun(false), toolTip = "Enables the menu of whoever your hand desires if they're using one.", legal = true},
+                new ButtonInfo { buttonText = "Admin Lightning Gun", method = AdminMods.LightningGun, toolTip = "Spawns Lightning wherever your Hand desires."},
+                new ButtonInfo { buttonText = "Admin Lightning All", method = AdminMods.LightningAll, toolTip = "Spawns Lightning on everyone."},
+                new ButtonInfo { buttonText = "Admin Lightning Orbit", method =() => AdminMods.LightningOrbit(), toolTip = "Orbits Lightning around you."},
+                new ButtonInfo { buttonText = "Admin Lightning Aura", method =() => AdminMods.LightningAura(false), toolTip = "Spawns Lightning around you."},
+                new ButtonInfo { buttonText = "Admin Lightning Aura Kick", method =() => AdminMods.LightningAura(true), toolTip = "Spawns Lightning around you and Kicks whoever gets Hit."},
 
-                new ButtonInfo { buttonText = "Admin Disable Menu All", method =() => Experimental.AdminLockdownAll(true), toolTip = "Disables the menu of whoever your hand desires if they're using one.", legal = true},
-                new ButtonInfo { buttonText = "Admin Enable Menu All", method =() => Experimental.AdminLockdownAll(false), toolTip = "Enables the menu of whoever your hand desires if they're using one.", legal = true},
+                new ButtonInfo { buttonText = "Admin Enable Menu Gun", method =() => AdminMods.LockdownGun(false), toolTip = "Enables the menu of whoever your hand desires if they're using one."},
+                new ButtonInfo { buttonText = "Admin Enable Menu All", method =() => AdminMods.LockdownAll(false), toolTip = "Enables the menu of whoever your hand desires if they're using one."},
 
-                new ButtonInfo { buttonText = "Admin Fully Disable Menu Gun", method =() => Experimental.AdminFullLockdownGun(true), toolTip = "Disables the menu of whoever your hand desires and turns off their mods if they're using one.", legal = true},
-                new ButtonInfo { buttonText = "Admin Fully Enable Menu Gun", method =() => Experimental.AdminFullLockdownGun(false), toolTip = "Enables the menu of whoever your hand desires and turns off their mods if they're using one.", legal = true},
+                new ButtonInfo { buttonText = "Admin Disable Menu Gun", method =() => AdminMods.LockdownGun(true), toolTip = "Disables the menu of whoever your hand desires if they're using one."},
+                new ButtonInfo { buttonText = "Admin Disable Menu All", method =() => AdminMods.LockdownAll(true), toolTip = "Disables the menu of whoever your hand desires if they're using one."},
 
-                new ButtonInfo { buttonText = "Admin Fully Disable Menu All", method =() => Experimental.AdminFullLockdownAll(true), isTogglable = false, toolTip = "Disables the menu of whoever your hand desires and turns off their mods if they're using one.", legal = true},
-                new ButtonInfo { buttonText = "Admin Fully Enable Menu All", method =() => Experimental.AdminFullLockdownAll(false), isTogglable = false, toolTip = "Enables the menu of whoever your hand desires and turns off their mods if they're using one.", legal = true},
+                new ButtonInfo { buttonText = "Admin Fully Enable Menu Gun", method =() => AdminMods.FullLockdownGun(false), toolTip = "Enables the menu of whoever your hand desires and turns off their mods if they're using one."},
+                new ButtonInfo { buttonText = "Admin Fully Enable Menu All", method =() => AdminMods.FullLockdownAll(false), isTogglable = false, toolTip = "Enables the menu of whoever your hand desires and turns off their mods if they're using one."},
 
-                new ButtonInfo { buttonText = "Admin Teleport Gun", method = Experimental.AdminTeleportGun, toolTip = "Teleports whoever using the menu to wherever your hand desires.", legal = true},
-                new ButtonInfo { buttonText = "Admin Fling Gun", method = Experimental.AdminFlingGun, toolTip = "Flings whoever your hand desires upwards.", legal = true},
-                new ButtonInfo { buttonText = "Admin Strangle", method = Experimental.AdminStrangle, toolTip = "Strangles whoever you grab if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Fake Cosmetics", overlapText = "Admin Spoof Cosmetics", method =() => Experimental.AdminSpoofCosmetics(), enableMethod =() => { NetworkSystem.Instance.OnPlayerJoined += Experimental.OnPlayerJoinSpoof; Experimental.AdminSpoofCosmetics(true); }, disableMethod =() => { NetworkSystem.Instance.OnPlayerJoined -= Experimental.OnPlayerJoinSpoof; Experimental.oldCosmetics = null; }, toolTip = "Makes everyone using the menu see whatever cosmetics you have on as if you owned them.", legal = true},
+                new ButtonInfo { buttonText = "Admin Fully Disable Menu Gun", method =() => AdminMods.FullLockdownGun(true), toolTip = "Disables the menu of whoever your hand desires and turns off their mods if they're using one."},
+                new ButtonInfo { buttonText = "Admin Fully Disable Menu All", method =() => AdminMods.FullLockdownAll(true), isTogglable = false, toolTip = "Disables the menu of whoever your hand desires and turns off their mods if they're using one."},
 
-                new ButtonInfo { buttonText = "Admin Lightning Gun", method = Experimental.LightningGun, toolTip = "Spawns lightning wherever your hand desires.", legal = true},
-                new ButtonInfo { buttonText = "Admin Lightning Aura", method = Experimental.LightningAura, toolTip = "Spawns lightning wherever your hand desires.", legal = true},
-                new ButtonInfo { buttonText = "Admin Lightning Rain", method = Experimental.LightningRain, toolTip = "Rains lightning around you and strikes whoever you hit.", legal = true},
+                new ButtonInfo { buttonText = "Admin Fake Cosmetics", overlapText = "Admin Spoof Cosmetics", method =() => AdminMods.SpoofCosmetics(), enableMethod =() => { NetworkSystem.Instance.OnPlayerJoined += AdminMods.OnPlayerJoinSpoof; AdminMods.SpoofCosmetics(true); }, disableMethod =() => { NetworkSystem.Instance.OnPlayerJoined -= AdminMods.OnPlayerJoinSpoof; AdminMods.oldCosmetics = null; }, toolTip = "Makes everyone using the menu see whatever cosmetics you have on as if you owned them."},
 
-                new ButtonInfo { buttonText = "Admin Laser <color=grey>[</color><color=green>A</color><color=grey>]</color>", method = Experimental.AdminLaser, toolTip = "Shines a red laser out of your hand when holding <color=green>A</color> or <color=green>X</color>.", legal = true},
-                new ButtonInfo { buttonText = "Admin Beam <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Experimental.AdminBeam, toolTip = "Shines a rainbow spinning laser out of your head when holding <color=green>trigger</color>.", legal = true},
-                new ButtonInfo { buttonText = "Admin Fractals <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Experimental.AdminFractals, toolTip = "Shines white lines out of your body when holding <color=green>trigger</color>.", legal = true},
+                new ButtonInfo { buttonText = "Admin Teleport Gun", method = AdminMods.TeleportGun, toolTip = "Teleports whoever using the menu to wherever your hand desires."},
 
-                new ButtonInfo { buttonText = "Admin Fear Gun", method = Experimental.AdminFearGun, toolTip = "Sends a person into pure fear and scarefulness.", legal = true},
-                new ButtonInfo { buttonText = "Admin Object Gun", method = Experimental.AdminObjectGun, toolTip = "Spawns an object wherever your hand desires.", legal = true},
-                new ButtonInfo { buttonText = "Admin Random Object Gun", method = Experimental.AdminRandomObjectGun, toolTip = "Spawns a random object wherever your hand desires.", legal = true},
+                new ButtonInfo { buttonText = "Admin Fling Gun", method = AdminMods.FlingGun, toolTip = "Flings whoever your hand desires upwards."},
 
-                new ButtonInfo { buttonText = "NotifLabel", overlapText = "No Notification Set", label = true, legal = true},
-                new ButtonInfo { buttonText = "Set Notification", isTogglable = false, method = Experimental.GetTargetNotification, toolTip = "Changes the notification text. The notification text is based off of what you type into the search bar.", legal = true},
-                new ButtonInfo { buttonText = "Admin Notify Self", isTogglable = false, method = Experimental.NotifySelf, toolTip = "Sends a notification to yourself. The notification text is based off of what you type into the search bar.", legal = true},
-                new ButtonInfo { buttonText = "Admin Notify Gun", method = Experimental.NotifyGun, toolTip = "Sends a notification to whoever your hand desires. The notification text is based off of what you type into the search bar.", legal = true},
-                new ButtonInfo { buttonText = "Admin Notify All", isTogglable = false, method = Experimental.NotifyAll, toolTip = "Sends a notification to everyone using the menu. The notification text is based off of what you type into the search bar.", legal = true},
+                new ButtonInfo { buttonText = "Admin Strangle", method = AdminMods.Strangle, toolTip = "Strangles whoever you grab if they're using the menu."},
 
-                new ButtonInfo { buttonText = "Admin Join Gun", enableMethod = Experimental.GetTargetNotification, method = Experimental.JoinGun, toolTip = "Brings whoever your hand desires to a room. The room is based off of what you type into the search bar.", legal = true},
-                new ButtonInfo { buttonText = "Admin Join All", isTogglable = false, method = Experimental.JoinAll, toolTip = "Brings everyone using the menu to a room. The room is based off of what you type into the search bar.", legal = true},
-                new ButtonInfo { buttonText = "Admin Network Scale", method = Experimental.AdminNetworkScale, disableMethod = Experimental.UnAdminNetworkScale, toolTip = "Networks your scale to others with the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Laser <color=grey>[</color><color=green>A</color><color=grey>]</color>", method =() => AdminMods.Laser(false), toolTip = "Shines a red laser out of your hand when holding <color=green>A</color> or <color=green>X</color>."},
+                new ButtonInfo { buttonText = "Admin Laser Kick <color=grey>[</color><color=green>A</color><color=grey>]</color>", method =() => AdminMods.Laser(true), toolTip = "Shines a red laser out of your hand when holding <color=green>A</color> or <color=green>X</color>."},
 
-                new ButtonInfo { buttonText = "Admin Confirm Notification", method = Experimental.ConfirmNotifyAllUsing, isTogglable = false, toolTip = "Sends a notification to everyone using the menu confirming that you're an admin.", legal = true},
+                new ButtonInfo { buttonText = "Admin Beam <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = AdminMods.Beam, toolTip = "Shines a rainbow spinning laser out of your head when holding <color=green>trigger</color>."},
+                new ButtonInfo { buttonText = "Admin Fractals <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = AdminMods.Fractals, toolTip = "Shines white lines out of your body when holding <color=green>trigger</color>."},
 
-                new ButtonInfo { buttonText = "Admin Levitate All", method = Experimental.FlyAllUsing, toolTip = "Sends everyone using the menu flying away upwards.", legal = true},
-                new ButtonInfo { buttonText = "Admin Bouncy All", method = Experimental.BouncyAllUsing, toolTip = "Makes everyone using the menu bouncy.", legal = true},
-                new ButtonInfo { buttonText = "Admin Bring Gun", method = Experimental.AdminBringGun, toolTip = "Brings whoever your hand desires to you if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Bring All", method = Experimental.BringAllUsing, toolTip = "Brings everyone using the menu to you.", legal = true},
-                new ButtonInfo { buttonText = "Admin Organize Gun", method = Experimental.AdminOrganizeGun, toolTip = "Brings every menu user into a straight line.", legal = true},
-                new ButtonInfo { buttonText = "Admin Bring Hand All", method = Experimental.BringHandAllUsing, toolTip = "Brings everyone using the menu to your hand.", legal = true},
-                new ButtonInfo { buttonText = "Admin Bring Head All", method = Experimental.BringHeadAllUsing, toolTip = "Brings everyone using the menu to your head.", legal = true},
-                new ButtonInfo { buttonText = "Admin Orbit All", method = Experimental.OrbitAllUsing, toolTip = "Makes everyone using the menu orbit you.", legal = true},
+                new ButtonInfo { buttonText = "NotifLabel", overlapText = "No Notification Set", label = true},
+                new ButtonInfo { buttonText = "Set Notification", isTogglable = false, method = AdminMods.GetTargetNotification, toolTip = "Changes the notification text. The notification text is based off of what you type into the search bar."},
+                new ButtonInfo { buttonText = "Admin Notify Self", isTogglable = false, method = AdminMods.NotifySelf, toolTip = "Sends a notification to yourself. The notification text is based off of what you type into the search bar."},
+                new ButtonInfo { buttonText = "Admin Notify Gun", method = AdminMods.NotifyGun, toolTip = "Sends a notification to whoever your hand desires. The notification text is based off of what you type into the search bar."},
+                new ButtonInfo { buttonText = "Admin Notify All", isTogglable = false, method = AdminMods.NotifyAll, toolTip = "Sends a notification to everyone using the menu. The notification text is based off of what you type into the search bar."},
 
-                new ButtonInfo { buttonText = "Admin Lag Gun", method = Experimental.AdminLagGun, toolTip = "Lags whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Lag All", method = Experimental.AdminLagAll, toolTip = "Lags everyone using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Lag Spike Gun", method = Experimental.AdminLagSpikeGun, toolTip = "Lag spikes whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Lag Spike All", method = Experimental.AdminLagSpikeAll, isTogglable = false, toolTip = "Lag spikes everyone using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Confirm Notification", method = AdminMods.ConfirmNotifyAllUsing, isTogglable = false, toolTip = "Sends a Notification to everyone using the Menu to Confirm that you're an Admin."},
 
-                new ButtonInfo { buttonText = "Admin Vibrate Gun", method = Experimental.AdminVibrateGun, toolTip = "Vibrate whoever your hand desires if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Vibrate All", method = Experimental.AdminVibrateAll, isTogglable = false, toolTip = "Vibrates everyone using the menu.", legal = true},
+                new ButtonInfo { buttonText = "Admin Join Gun", enableMethod = AdminMods.GetTargetNotification, method = AdminMods.JoinGun, toolTip = "Brings whoever your hand desires to a room. The room is based off of what you type into the search bar."},
+                new ButtonInfo { buttonText = "Admin Join All", isTogglable = false, method = AdminMods.JoinAll, toolTip = "Brings everyone using the menu to a room. The room is based off of what you type into the search bar."},
 
-                new ButtonInfo { buttonText = "Admin Block Gun", method = Experimental.AdminBlockGun, toolTip = "Disables whoever your hand desires from joining servers for 5 minutes if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Announce Block Gun", method =() => Experimental.AdminABlockGun(false), toolTip = "Block gun, but it sends a notification to everyone using the menu that the target was blocked.", legal = true},
-                new ButtonInfo { buttonText = "Silent Announce Block Gun", method =() => Experimental.AdminABlockGun(true), toolTip = "Block gun, but it sends a notification to everyone using the menu that the target was blocked. Hides your name.", legal = true},
+                new ButtonInfo { buttonText = "Admin Levitate All", method = AdminMods.FlyAllUsing, toolTip = "Sends everyone using the Menu Flying Up."},
+                new ButtonInfo { buttonText = "Admin Bouncy All", method = AdminMods.BouncyAllUsing, toolTip = "Makes everyone using the Menu Bouncy."},
 
-                new ButtonInfo { buttonText = "Admin Open Menu Gun", method =() => Experimental.AdminButtonPressGun("lSecondary"), toolTip = "Force a player to open their menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Toggle Invis Gun", method =() => Experimental.AdminButtonPressGun("rSecondary"), toolTip = "Force a player to toggle invisibility mod.", legal = true},
+                new ButtonInfo { buttonText = "Admin Bring Gun", method = AdminMods.BringGun, toolTip = "Brings whoever your hand desires to you if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Bring All", method = AdminMods.BringAllUsing, toolTip = "Brings everyone using the menu to you."},
 
-                new ButtonInfo { buttonText = "Admin Punch Mod", method = Experimental.AdminPunchMod, toolTip = "Flings people when you punch them if they're using the menu.", legal = true},
-                new ButtonInfo { buttonText = "Admin Find User", enableMethod =() => { Experimental.EnableAdminMenuUserTags(); Experimental.FindUserTime = Time.time; }, method = Experimental.AdminFindUser, toolTip = "Joins publics until a menu user is found.", legal = true},
+                new ButtonInfo { buttonText = "Admin Bring All Hand", method = AdminMods.BringHandAllUsing, toolTip = "Brings everyone using the Menu to your Hand."},
 
-                new ButtonInfo { buttonText = "No Admin Indicator", enableMethod = Experimental.EnableNoAdminIndicator, method = Experimental.NoAdminIndicator, disableMethod = Experimental.AdminIndicatorBack, toolTip = "Disables the cone that appears above your head to others with the menu.", legal = true},
-                new ButtonInfo { buttonText = "Allow Kick Self", enableMethod =() => Console.allowKickSelf = true, disableMethod =() => Console.allowKickSelf = false, toolTip = "Lets other admins kick you.", legal = true},
-                new ButtonInfo { buttonText = "Disable Fling Self", enableMethod =() => Console.disableFlingSelf = true, disableMethod =() => Console.disableFlingSelf = false, toolTip = "Other admins can't fling you.", legal = true},
+                new ButtonInfo { buttonText = "Admin Organize Gun", method = AdminMods.OrganizeGun, toolTip = "Brings every menu user into a straight line."},
 
-                new ButtonInfo { buttonText = "Admin Platform Exclude Gun", method =() => Experimental.AdminPlatToggleGun(true), toolTip = "Puts a player who is included for platform networking to be excluded.", legal = true},
-                new ButtonInfo { buttonText = "Admin Platform Include Gun", method =() => Experimental.AdminPlatToggleGun(false), toolTip = "Puts a player who is excluded for platform networking to be included.", legal = true},
+                new ButtonInfo { buttonText = "Admin Orbit All", method = AdminMods.OrbitAllUsing, toolTip = "Makes everyone using the menu orbit you."},
+
+                new ButtonInfo { buttonText = "Admin Safety Bubble", method =() => AdminMods.SafetyBubble(), toolTip = "Flings Players using the Menu, if they get too close to you."},
+
+                new ButtonInfo { buttonText = "Admin Network Scale", method = AdminMods.NetworkScale, disableMethod = AdminMods.UnNetworkScale, toolTip = "Networks your scale to others with the menu."},
+
+                new ButtonInfo { buttonText = "Admin Lag Gun", method = AdminMods.LagGun, toolTip = "Lags whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Lag All", method = AdminMods.LagAll, toolTip = "Lags everyone using the menu."},
+                new ButtonInfo { buttonText = "Admin Lag Spike Gun", method = AdminMods.LagSpikeGun, toolTip = "Lag spikes whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Lag Spike All", method = AdminMods.LagSpikeAll, isTogglable = false, toolTip = "Lag spikes everyone using the menu."},
+
+                new ButtonInfo { buttonText = "Admin Vibrate Gun", method = AdminMods.VibrateGun, toolTip = "Vibrate whoever your hand desires if they're using the menu."},
+                new ButtonInfo { buttonText = "Admin Vibrate All", method = AdminMods.VibrateAll, isTogglable = false, toolTip = "Vibrates everyone using the menu."},
+
+                new ButtonInfo { buttonText = "Admin Punch Mod", method = AdminMods.PunchMod, toolTip = "Flings people when you punch them if they're using the menu."},
+
+                new ButtonInfo { buttonText = "No Admin Indicator", enableMethod = AdminMods.EnableNoAdminIndicator, method = AdminMods.NoAdminIndicator, disableMethod = AdminMods.AdminIndicatorBack, toolTip = "Disables the cone that appears above your head to others with the menu."},
+                new ButtonInfo { buttonText = "No Admin Command Logs", enableMethod = AdminMods.EnableNoAdminCommandLogs, method = AdminMods.NoAdminCommandLogs, disableMethod = AdminMods.AdminCommandLogsBack, toolTip = "Disables the logs for admin mods you use on others with the menu."},
+
+                new ButtonInfo { buttonText = "Admin Silent Block Gun", method = AdminMods.BlockGun, toolTip = "Prevents whoever your hand desires from joining servers for 5 minutes if they're using the Menu."},
+                new ButtonInfo { buttonText = "Admin Notify Block Gun", method =() => AdminMods.AnncBlockGun(), toolTip = "Block Gun, but it sends a Notification to everyone using the Menu."},
+                new ButtonInfo { buttonText = "Admin Notify Block Hide Self", enableMethod =() => AdminMods.anncBlockHideSelf = true, disableMethod =() => AdminMods.anncBlockHideSelf = false, toolTip = "Hides your Name when using Announce Block Gun."},
+                new ButtonInfo { buttonText = "Admin Notify Block Hide Other", enableMethod =() => AdminMods.anncBlockHideOther = true, disableMethod =() => AdminMods.anncBlockHideOther = false, toolTip = "Hides the Blocked Person's Name when using Announce Block Gun."},
+
+                new ButtonInfo { buttonText = "Admin Enable Kick Self", enableMethod =() => Console.allowKickSelf = true, disableMethod =() => Console.allowKickSelf = false, toolTip = "Lets other Admins kick you."},
+                new ButtonInfo { buttonText = "Admin Disable Fling Self", enableMethod =() => Console.disableFlingSelf = true, disableMethod =() => Console.disableFlingSelf = false, toolTip = "Makes other Admins unable to fling you."},
+
+                new ButtonInfo { buttonText = "Admin Weapon Selector", overlapText = "Weapon: Sword", incremental = true, enableMethod =() => AdminMods.ChangeWeapon(), method =() => AdminMods.ChangeWeapon(), disableMethod =() => AdminMods.ChangeWeapon(false), toolTip = "Changes the Weapon."},
+                new ButtonInfo { buttonText = "Admin Weapon", method =() => AdminMods.Weapon(), disableMethod =() => AdminMods.RemoveWeapon(), toolTip = "Gives you the selected Weapon."},
+                new ButtonInfo { buttonText = "Admin Weapon Fling", method =() => AdminMods.weaponFling = true, disableMethod =() => AdminMods.weaponFling = false, toolTip = "Flings whoever you Hit with your Weapon."},
+                new ButtonInfo { buttonText = "Admin Weapon Kick", method =() => AdminMods.weaponKick = true, disableMethod =() => AdminMods.weaponKick = false, toolTip = "Kicks whoever you Hit with your Weapon."},
+
+                new ButtonInfo { buttonText = "Admin Pistol", method =() => AdminMods.Pistol(), disableMethod =() => AdminMods.RemovePistol(), toolTip = "Gives you a working Pistol."},
+                new ButtonInfo { buttonText = "Admin Pistol Fling", method =() => AdminMods.pistolFling = true, disableMethod =() => AdminMods.pistolFling = false, toolTip = "Flings whoever you Shoot with the Pistol."},
+                new ButtonInfo { buttonText = "Admin Pistol Kick", method =() => AdminMods.pistolKick = true, disableMethod =() => AdminMods.pistolKick = false, toolTip = "Kicks whoever you Shoot with the Pistol."},
+
+                new ButtonInfo { buttonText = "Admin PlsDonate Nuke", method =() => AdminMods.SpawnNuke(), isTogglable = false, toolTip = "Spawns a Nuke from PlsDonate in Forest."},
+
+                new ButtonInfo { buttonText = "Admin Trail Selector", overlapText = "Trail: Flash", incremental = true, enableMethod =() => AdminMods.ChangeTrail(), method =() => AdminMods.ChangeTrail(), disableMethod =() => AdminMods.ChangeTrail(false), toolTip = "Changes the Trail."},
+                new ButtonInfo { buttonText = "Admin Trail", enableMethod =() => AdminMods.SpawnTrailEffect(), disableMethod =() => AdminMods.RemoveTrailEffect(), toolTip = "Gives you the selected Trail."},
+
+                new ButtonInfo { buttonText = "Admin Jail Gun", method =() => AdminMods.JailGun(), disableMethod =() => AdminMods.RemoveJail(), toolTip = "Puts whoever your Hand desires in a Jail Cell."},
+
+                new ButtonInfo { buttonText = "Admin Travis Event", enableMethod =() => AdminMods.SpawnTravisEvent(), disableMethod =() => AdminMods.RemoveTravisEvent(), toolTip = "Starts a Travis Event in Forest."},
+                new ButtonInfo { buttonText = "Admin Mini Travis", method =() => AdminMods.MiniTravis(), disableMethod =() => AdminMods.RemoveMiniTravis(), toolTip = "Gives you a Mini Travis Event."},
+
+                new ButtonInfo { buttonText = "Admin Cheeseburger", method =() => AdminMods.Cheeseburger(), disableMethod =() => AdminMods.RemoveCheeseburger(), toolTip = "Gives you a Cheeseburger."},
+
+                new ButtonInfo { buttonText = "Admin Rubber Duck", method =() => AdminMods.RubberDuck(), disableMethod =() => AdminMods.RemoveRubberDuck(), toolTip = "Gives you a Rubber Duck."},
+
+                new ButtonInfo { buttonText = "Admin SS Mod Menu", method =() => AdminMods.ModMenu(), disableMethod =() => AdminMods.RemoveModMenu(), toolTip = "Gives you a ServerSided Mod Menu."},
+
+                new ButtonInfo { buttonText = "Admin B-Tools", method =() => AdminMods.BTools(), disableMethod =() => AdminMods.RemoveBTools(), toolTip = "Gives you working B-Tools."},
+
+                new ButtonInfo { buttonText = "VideoLabel", overlapText = "No Video Selected", label = true},
+                new ButtonInfo { buttonText = "Admin Video Selector", method =() => AdminMods.OpenVideoSelector(false), isTogglable = false, toolTip = "Opens the Admin Video Selector."},
+                new ButtonInfo { buttonText = "Admin Play Video Hand", enableMethod =() => AdminMods.PlayVideoHand(), disableMethod =() => AdminMods.StopVideoHand(), toolTip = "Plays the selected Video on your Hand."},
+                new ButtonInfo { buttonText = "Admin Play Video Phone", enableMethod =() => AdminMods.PlayVideoPhone(), disableMethod =() => AdminMods.StopVideoPhone(), toolTip = "Plays the selected Video on a Phone."},
+                new ButtonInfo { buttonText = "Admin Play Video TV", enableMethod =() => AdminMods.PlayVideoTV(), disableMethod =() => AdminMods.StopVideoTV(), toolTip = "Plays the selected Video on a TV in Forest."},
+
+                new ButtonInfo { buttonText = "Admin Concert Selector", overlapText = "Concert: BACKD00R", incremental = true, enableMethod =() => AdminMods.ChangeConcert(), method =() => AdminMods.ChangeConcert(), disableMethod =() => AdminMods.ChangeConcert(false), toolTip = "Changes the Concert Song."},
+                new ButtonInfo { buttonText = "Admin Play Concert", enableMethod =() => AdminMods.PlayConcert(), disableMethod =() => AdminMods.StopConcert(), toolTip = "Plays the selected Concert on a Stage in Forest."},
+
+                new ButtonInfo { buttonText = "Admin Twerking Carti", enableMethod =() => AdminMods.SpawnTwerkingCarti(), disableMethod =() => AdminMods.RemoveTwerkingCarti(), toolTip = "Spawns a Twerking Carti in Forest."},
+
+                new ButtonInfo { buttonText = "Admin Shrek", enableMethod =() => AdminMods.SpawnShrekSaxophone(), disableMethod =() => AdminMods.RemoveShrekSaxophone(), toolTip = "Spawns a Shrek with a Saxophone in Forest."},
+
+                new ButtonInfo { buttonText = "Admin Coin Flip", method = () => AdminMods.Coin(), disableMethod = () => AdminMods.RemoveCoin(), toolTip = "Flip a Coin." },
+
+                new ButtonInfo { buttonText = "Admin Shiba", method = () => AdminMods.Shiba(), disableMethod = () => AdminMods.RemoveShiba(), toolTip = "Spawns a Shiba in your Hand." },
+
+                new ButtonInfo { buttonText = "Admin Pigeon", method = () => AdminMods.Pigeon(), disableMethod = () => AdminMods.RemovePigeon(), toolTip = "Spawns a Pigeon in your Hand." },
+
+                /*
+                new ButtonInfo { buttonText = "Physics Gun", method = () => AdminMods.PhysicsGun(), toolTip = "Gives you a working Physics Gun." },
+                
+                new ButtonInfo { buttonText = "Boombox", method = () => AdminMods.Boombox(), toolTip = "Spawns you a working Boombox." },
+                
+                new ButtonInfo { buttonText = "Wii Remote", method = () => AdminMods.WiiRemote(), toolTip = "Uses a Wii Remote holdable." },
+                
+                new ButtonInfo { buttonText = "Ban Hammer", method = () => AdminMods.BanHammer(), toolTip = "Gives you a working Ban-Hammer to Block People from joining Rooms for a specified Amount of Time." },
+                
+                new ButtonInfo { buttonText = "Rat Gun", method = () => AdminMods.RatGun(), toolTip = "Shoots or spawns rats." },
+                
+                new ButtonInfo { buttonText = "Cherry Bomb", method = () => AdminMods.CherryBomb(), toolTip = "Throws or spawns a Cherry Bomb." },
+
+                new ButtonInfo { buttonText = "NoliStar", method = () => AdminMods.NoliStar(), toolTip = "Spawns a NoliStar." },
+                
+                new ButtonInfo { buttonText = "Ravenger", method = () => AdminMods.Ravenger(), toolTip = "Spawns a Ravenger." },
+
+                new ButtonInfo { buttonText = "Bag", method = () => AdminMods.Bag(), toolTip = "Spawns a Bag Asset." },
+                */
+
+                new ButtonInfo { buttonText = "Admin Remove All Assets", method =() => AdminMods.RemoveAllAssets(), isTogglable = false, toolTip = "Removes all Console Assets."},
             },
 
             new[] { // Enabled Mods [24]
@@ -2430,6 +2528,8 @@ namespace Seralyth.Menu
 
             new[] { // Safety Settings [28]
                 new ButtonInfo { buttonText = "Exit Safety Settings", method =() => CurrentCategoryName = "Settings", isTogglable = false, toolTip = "Returns you back to the settings menu.", legal = true},
+
+                new ButtonInfo { buttonText = "Admin-Command Blocker Settings", method =() => CurrentCategoryName = "Admin Command Blocker Settings", isTogglable = false, toolTip = "Opens the Admin-Command Blocker Settings."},
 
                 ButtonHelper.Create("Change Anti Report Distance", () => Safety.AntiReportRangeNames, Safety.antiReportRangeIndex, Safety.ApplyAntiReportRange, "Changes the distance threshold for the anti report mods."),
                 ButtonHelper.CreateNumeric("Change FPS Spoof Value", 1, 120, 90, v => GTPlayerStatsPatch.FPS = (short)v, toolTip: "Changes the target FPS for the FPS Spoof mod."),
@@ -2598,11 +2698,12 @@ namespace Seralyth.Menu
             new[] // Admin Mod Givers [40]
             {
                 new ButtonInfo { buttonText = "Exit Admin Mod Givers", method =() => CurrentCategoryName = "Admin Mods", isTogglable = false, toolTip = "Returns you back to the Admin mods.", legal = true},
-                new ButtonInfo { buttonText = "Give Fly Gun", method = Experimental.AdminGiveFlyGun, toolTip = "Gives whoever you want fly when they hold their right thumb down if they're using console."},
-                new ButtonInfo { buttonText = "Give Trigger Fly Gun", method = Experimental.AdminGiveTriggerFlyGun, toolTip = "Gives whoever you want fly when they hold their trigger down if they're using console."},
-                new ButtonInfo { buttonText = "Give Speed Boost Gun", method = Experimental.AdminGiveSpeedGun, toolTip = "Gives whoever you want speed boost if they're using console."},
-                new ButtonInfo { buttonText = "Give Low Gravity Gun", method = Experimental.AdminGiveLowGravity, toolTip = "Gives whoever you want low gravity if they're using console."},
-                new ButtonInfo { buttonText = "Give Platforms Gun", method = Experimental.AdminGivePlatforms, toolTip = "Gives whoever you want platforms if they're using console."},
+
+                new ButtonInfo { buttonText = "Give Fly Gun", method = AdminMods.GiveFlyGun, toolTip = "Gives whoever you want fly when they hold their right thumb down if they're using console."},
+                new ButtonInfo { buttonText = "Give Trigger Fly Gun", method = AdminMods.GiveTriggerFlyGun, toolTip = "Gives whoever you want fly when they hold their trigger down if they're using console."},
+                new ButtonInfo { buttonText = "Give Speed Boost Gun", method = AdminMods.GiveSpeedGun, toolTip = "Gives whoever you want speed boost if they're using console."},
+                new ButtonInfo { buttonText = "Give Low Gravity Gun", method = AdminMods.GiveLowGravity, toolTip = "Gives whoever you want low gravity if they're using console."},
+                new ButtonInfo { buttonText = "Give Platforms Gun", method = AdminMods.GivePlatforms, toolTip = "Gives whoever you want platforms if they're using console."},
             },
 
             new ButtonInfo[] { }, // Chat Messages [41]
@@ -2754,6 +2855,77 @@ namespace Seralyth.Menu
             new[] // Sound Properties [50]
             {
                 new ButtonInfo { buttonText = "Exit Sound's Properties", method = () => CurrentCategoryName = "Soundboard", isTogglable = false, toolTip = "Returns you back to the Soundboard page.", legal = true}
+            },
+
+            new[] // Select GR Object [51]
+            {
+                new ButtonInfo { buttonText = "Exit Select GR Object", method =() => currentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods."}
+            },
+
+            new[] // Admin-Command Blocker Settings [52]
+            {
+                new ButtonInfo { buttonText = "Exit Admin-Command Blocker Settings", method =() => currentCategoryName = "Safety Settings", isTogglable = false, toolTip = "Returns you back to the safety settings."},
+
+                new ButtonInfo { buttonText = "Admin-Command Blocker", enableMethod = () => AdminPermissionManager.blockingEnabled = true, disableMethod = () => AdminPermissionManager.blockingEnabled = false, toolTip = "Blocks all Admin-Commands that have not been Allowed below." },
+                new ButtonInfo { buttonText = "Admin-Command Notifier", enableMethod = () => AdminPermissionManager.notifyEnabled = true, disableMethod = () => AdminPermissionManager.notifyEnabled = false, toolTip = "Sends you a Notification everytime an Admin executes a Command." },
+
+                new ButtonInfo { buttonText = "isusing", overlapText = "Check Using", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("isusing"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("isusing"), toolTip = "Adds the Check Using Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "kick", overlapText = "Kick Player", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("kick"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("kick"), toolTip = "Adds the Kick Player Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "silkick", overlapText = "Silent Kick", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("silkick"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("silkick"), toolTip = "Adds the Silent Kick Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "join", overlapText = "Join Room", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("join"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("join"), toolTip = "Adds the Join Room Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "kickall", overlapText = "Kick All Players", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("kickall"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("kickall"), toolTip = "Adds the Kick All Players Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "block", overlapText = "Block User", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("block"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("block"), toolTip = "Adds the Block User Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "crash", overlapText = "Crash Game", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("crash"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("crash"), toolTip = "Adds the Crash Game Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "sleep", overlapText = "Freeze Game", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("sleep"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("sleep"), toolTip = "Adds the Freeze Game Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "vibrate", overlapText = "Controller Vibration", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("vibrate"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("vibrate"), toolTip = "Adds the Controller Vibration Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "forceenable", overlapText = "Force Enable Mod", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("forceenable"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("forceenable"), toolTip = "Adds the Force Enable Mod Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "toggle", overlapText = "Toggle Mod", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("toggle"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("toggle"), toolTip = "Adds the Toggle Mod Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "togglemenu", overlapText = "Disable Menu", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("togglemenu"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("togglemenu"), toolTip = "Adds the Disable Menu Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "tp", overlapText = "Teleport Player", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("tp"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("tp"), toolTip = "Adds the Teleport Player Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "map", overlapText = "Teleport To Map", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("map"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("map"), toolTip = "Adds the Teleport To Map Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "nocone", overlapText = "No Cone Toggle", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("nocone"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("nocone"), toolTip = "Adds the No Cone Toggle Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "vel", overlapText = "Set Velocity", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("vel"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("vel"), toolTip = "Adds the Set Velocity Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "controller", overlapText = "Simulate Controller Input", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("controller"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("controller"), toolTip = "Adds the Simulate Controller Input Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "smoothtp", overlapText = "Smooth Teleport", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("smoothtp"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("smoothtp"), toolTip = "Adds the Smooth Teleport Alt Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "shake", overlapText = "Screen Shake", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("shake"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("shake"), toolTip = "Adds the Screen Shake Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "tpnv", overlapText = "Teleport No Velocity", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("tpnv"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("tpnv"), toolTip = "Adds the Teleport No Velocity Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "scale", overlapText = "Scale Player", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("scale"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("scale"), toolTip = "Adds the Scale Player Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "cosmetic", overlapText = "Add Cosmetic", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("cosmetic"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("cosmetic"), toolTip = "Adds the Add Cosmetic Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "cosmetics", overlapText = "Add Cosmetic Batch", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("cosmetics"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("cosmetics"), toolTip = "Adds the Add Cosmetic Batch Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "strike", overlapText = "Lightning Strike", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("strike"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("strike"), toolTip = "Adds the Lightning Strike Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "laser", overlapText = "Laser Effect", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("laser"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("laser"), toolTip = "Adds the Laser Effect Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "notify", overlapText = "Send Notification", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("notify"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("notify"), toolTip = "Adds the Send Notification Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "lr", overlapText = "Draw Line", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("lr"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("lr"), toolTip = "Adds the Draw Line Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "platf", overlapText = "Spawn Platform", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("platf"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("platf"), toolTip = "Adds the Spawn Platform Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "muteall", overlapText = "Mute All", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("muteall"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("muteall"), toolTip = "Adds the Mute All Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "unmuteall", overlapText = "Un-Mute All", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("unmuteall"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("unmuteall"), toolTip = "Adds the Un-Mute All Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "mute", overlapText = "Mute Player", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("mute"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("mute"), toolTip = "Adds the Mute Player Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "unmute", overlapText = "Un-Mute Player", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("unmute"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("unmute"), toolTip = "Adds the Un-Mute Player Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "rigposition", overlapText = "Force Set Rig Position", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("rigposition"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("rigposition"), toolTip = "Adds the Force Set Rig Position Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "sb", overlapText = "Sound Broadcast", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("sb"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("sb"), toolTip = "Adds the Sound Broadcast Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "time", overlapText = "Set Time", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("time"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("time"), toolTip = "Adds the Set Time Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "weather", overlapText = "Weather Toggle", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("weather"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("weather"), toolTip = "Adds the Weather Toggle Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "setfog", overlapText = "Set Fog", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("setfog"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("setfog"), toolTip = "Adds the Set Fog Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "resetfog", overlapText = "Reset Fog", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("resetfog"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("resetfog"), toolTip = "Adds the Reset Fog Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "spatial", overlapText = "Adjust Spatial Voice-Audio Settings", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("spatial"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("spatial"), toolTip = "Adds the Adjust Spatial Voice-Audio Settings Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "setmaterial", overlapText = "Set Material", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("setmaterial"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("setmaterial"), toolTip = "Adds the Set Material Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "asset-modify", overlapText = "Add/Modify/Remove Assets", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("asset-modify"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("asset-modify"), toolTip = "Adds the Add/Modify/Remove Assets Admin-Command to the List of Allowed Commands." },
+
+                new ButtonInfo { buttonText = "game-setposition", overlapText = "Set GameObject Position", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("game-setposition"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("game-setposition"), toolTip = "Adds the Set GameObject Position Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "game-setrotation", overlapText = "Set GameObject Rotation", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("game-setrotation"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("game-setrotation"), toolTip = "Adds the Set GameObject Rotation Admin-Command to the List of Allowed Commands." },
+                new ButtonInfo { buttonText = "game-clone", overlapText = "Clone GameObject", hideFromArraylist = true, hideFromEnabled = true, enableMethod = () => AdminPermissionManager.AddCommandToList("game-clone"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("game-clone"), toolTip = "Adds the Clone GameObject Admin-Command to the List of Allowed Commands." }
+            },
+
+            new[] // Admin Video Selector [53]
+            {
+                new ButtonInfo { buttonText = "Exit Admin Video Selector", method =() => CurrentCategoryName = "Admin Mods", isTogglable = false, toolTip = "Returns you back to the Admin Mods."},
+
+                new ButtonInfo { buttonText = "Loading Videos...", label = true },
             }
         };
 
@@ -2808,7 +2980,10 @@ namespace Seralyth.Menu
             "Patreon Mods",
             "Patreon Settings",
             "Voice Changers",
-            "Sound Properties"
+            "Sound Properties",
+            "Select GR Object",
+            "Admin Command Blocker Settings",
+            "Admin Video Selector"
         };
 
         public static int _currentCategoryIndex;

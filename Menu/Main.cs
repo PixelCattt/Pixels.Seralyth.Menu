@@ -22,6 +22,7 @@
 using ExitGames.Client.Photon;
 using GorillaExtensions;
 using GorillaLocomotion;
+using GorillaLocomotion.Gameplay;
 using GorillaNetworking;
 using GorillaTag.CosmeticSystem;
 using GorillaTagScripts;
@@ -94,8 +95,12 @@ namespace Seralyth.Menu
             //    Prompt("It seems like this is your first time using the menu. Would you like to watch a quick tutorial to get to know how to use it?", Settings.ShowTutorial);
             //else
             //    acceptedDonations = File.Exists($"{PluginInfo.BaseDirectory}/Seralyth_HideDonationButton.txt");
-            if (!Bootstrapper.FirstLaunch)
+
+            if (Bootstrapper.FirstLaunch)
+                Settings.LoadDefaultPreferences();
+            else
                 acceptedDonations = File.Exists($"{PluginInfo.BaseDirectory}/Seralyth_HideDonationButton.txt");
+
 
             NetworkSystem.Instance.OnJoinedRoomEvent += OnJoinRoom;
             NetworkSystem.Instance.OnReturnedToSinglePlayer += OnLeaveRoom;
@@ -1333,6 +1338,58 @@ namespace Seralyth.Menu
                         }
                     }
                 }
+
+                // Highlight Selected Ropes
+                if (Overpowered.selectedRopes.Count >= 1)
+                {
+                    List<Transform> ropeBones = new List<Transform>();
+                    foreach (GorillaRopeSwing rope in Overpowered.selectedRopes)
+                    {
+                        if (rope != null)
+                        {
+                            ropeBones = new List<Transform>();
+
+                            if (rope.gameObject.GetComponentInChildren<Transform>() != null)
+                            {
+                                foreach (Transform bone in rope.gameObject.GetComponentInChildren<Transform>())
+                                {
+                                    if (bone.gameObject.name.StartsWith("RopeBone_"))
+                                    {
+                                        ropeBones.Add(bone.gameObject.transform);
+                                    }
+                                }
+                            }
+
+                            Transform prevBone = null;
+                            foreach (Transform bone in ropeBones)
+                            {
+                                if (!(bone.name == "RopeBone_00"))
+                                {
+                                    GameObject line = new GameObject("Line");
+                                    if (GetIndex("Hidden on Camera").enabled) { line.layer = 19; }
+
+                                    LineRenderer liner = line.AddComponent<LineRenderer>();
+                                    liner.startColor = backgroundColor.GetCurrentColor();
+                                    liner.endColor = backgroundColor.GetCurrentColor();
+                                    liner.startWidth = 0.025f;
+                                    liner.endWidth = 0.025f;
+                                    liner.positionCount = 2;
+                                    liner.useWorldSpace = true;
+                                    liner.SetPosition(0, prevBone.transform.position);
+                                    liner.SetPosition(1, bone.transform.position);
+                                    liner.material.shader = Shader.Find("GUI/Text Shader");
+                                    UnityEngine.Object.Destroy(line, Time.deltaTime);
+                                }
+
+                                prevBone = bone;
+                            }
+                        }
+                        else
+                        {
+                            Overpowered.selectedRopes.Remove(rope);
+                        }
+                    }
+                }
                 #endregion
             }
             catch (Exception exc)
@@ -2536,13 +2593,41 @@ namespace Seralyth.Menu
                 buildLabel.enableAutoSizing = true;
                 buildLabel.fontSizeMin = 0;
 
-                RectTransform component = buildLabel.GetComponent<RectTransform>();
-                component.localPosition = Vector3.zero;
-                component.sizeDelta = new Vector2(0.28f, 0.02f);
-                component.position = thinMenu ? new Vector3(0.04f, 0.0f, -0.17f) : new Vector3(0.04f, 0.07f, -0.17f);
-                component.rotation = Quaternion.Euler(new Vector3(0f, 90f, 90f));
+                RectTransform buildLabelComponent = buildLabel.GetComponent<RectTransform>();
+                buildLabelComponent.localPosition = Vector3.zero;
+                buildLabelComponent.sizeDelta = new Vector2(0.28f, 0.02f);
+                buildLabelComponent.position = thinMenu ? new Vector3(0.04f, 0.0f, -0.17f) : new Vector3(0.04f, 0.07f, -0.17f);
+                buildLabelComponent.rotation = Quaternion.Euler(new Vector3(0f, 90f, 90f));
 
                 FollowMenuSettings(buildLabel);
+
+                TextMeshPro modifiedByLabel = new GameObject
+                {
+                    transform =
+                    {
+                        parent = canvasObj.transform
+                    }
+                }.AddComponent<TextMeshPro>();
+                modifiedByLabel.font = activeFont;
+                modifiedByLabel.text = "Modified by PixelCatt";
+
+                modifiedByLabel.text = FollowMenuSettings(modifiedByLabel.text);
+
+                modifiedByLabel.fontSize = 1;
+                modifiedByLabel.AddComponent<UIColorChanger>().colors = textColors[0];
+                modifiedByLabel.richText = true;
+                modifiedByLabel.fontStyle = activeFontStyle;
+                modifiedByLabel.alignment = TextAlignmentOptions.Left;
+                modifiedByLabel.enableAutoSizing = true;
+                modifiedByLabel.fontSizeMin = 0;
+
+                RectTransform modifiedByLabelComponent = modifiedByLabel.GetComponent<RectTransform>();
+                modifiedByLabelComponent.localPosition = Vector3.zero;
+                modifiedByLabelComponent.sizeDelta = new Vector2(0.28f, 0.02f);
+                modifiedByLabelComponent.position = thinMenu ? new Vector3(0.04f, 0.0f, 0.17f) : new Vector3(0.04f, 0.07f, 0.17f);
+                modifiedByLabelComponent.rotation = Quaternion.Euler(new Vector3(0f, 90f, 90f));
+
+                FollowMenuSettings(modifiedByLabel);
 
                 if (!disableWatermark)
                 {
@@ -2817,7 +2902,7 @@ namespace Seralyth.Menu
                                     int categoryIndex = 0;
                                     foreach (ButtonInfo[] buttonList in Buttons.buttons)
                                     {
-                                        enabledMods.AddRange(buttonList.Where(v => v.enabled && (!hideSettings || !Buttons.categoryNames[categoryIndex].Contains("Settings")) && (!hideMacros || !Buttons.categoryNames[categoryIndex].Contains("Macro"))));
+                                        enabledMods.AddRange(buttonList.Where(v => v.enabled && !v.hideFromEnabled && (!hideSettings || !Buttons.categoryNames[categoryIndex].Contains("Settings")) && (!hideMacros || !Buttons.categoryNames[categoryIndex].Contains("Macro"))));
                                         categoryIndex++;
                                     }
                                     enabledMods = enabledMods.OrderBy(v => v.buttonText).ToList();
@@ -2868,49 +2953,6 @@ namespace Seralyth.Menu
             }
 
             RecenterMenu();
-
-            if (themeType == 48)
-            {
-                for (int i = 0; i < 15; i++)
-                {
-                    GameObject particle = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    particle.transform.position = menuBackground.transform.position;
-                    particle.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-                    Destroy(particle.GetComponent<BoxCollider>());
-                    Destroy(particle, 2f);
-
-                    particle.GetComponent<Renderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
-                    particle.GetComponent<Renderer>().material.color = Color.white;
-
-                    if (cannabisMat == null)
-                    {
-                        cannabisMat = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
-                        {
-                            color = Color.white
-                        };
-
-                        if (cann == null)
-                            cann = LoadTextureFromURL($"{PluginInfo.ServerResourcePath}/Images/Themes/cannabis.png", "Images/Themes/cannabis.png");
-
-                        cannabisMat.mainTexture = cann;
-
-                        cannabisMat.SetFloat("_Surface", 1);
-                        cannabisMat.SetFloat("_Blend", 0);
-                        cannabisMat.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-                        cannabisMat.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
-                        cannabisMat.SetFloat("_ZWrite", 0);
-                        cannabisMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                        cannabisMat.renderQueue = (int)RenderQueue.Transparent;
-                    }
-                    particle.GetComponent<Renderer>().material = cannabisMat;
-
-                    Rigidbody comp = particle.AddComponent(typeof(Rigidbody)) as Rigidbody;
-                    comp.position = menuBackground.transform.position;
-                    comp.linearVelocity = new Vector3(Random.Range(-3f, 3f), Random.Range(3f, 5f), Random.Range(-3f, 3f));
-                    comp.angularVelocity = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f));
-                }
-            }
 
             menu.transform.localScale *= scaleWithPlayer && XRSettings.isDeviceActive ? GTPlayer.Instance.scale * menuScale : menuScale;
             return menu;
@@ -4058,7 +4100,7 @@ namespace Seralyth.Menu
             LoadSoundFromURL($"{PluginInfo.ServerResourcePath}/Audio/Menu/Notifications/win7-exc.ogg", "Audio/Menu/Notifications/win7-exc.ogg", clip => Play2DAudio(clip, buttonClickVolume / 10f));
 
             versionArchive ??= newVersion;
-            Prompt($"A new version is available ({versionArchive}). Would you like to update?", Settings.UpdateMenu);
+            Prompt($"A new Version is available ({versionArchive}). Would you like to open the Download Page?", Settings.UpdateMenu);
         }
 
         private const int MaxGradientCacheSize = 64;
@@ -4819,7 +4861,7 @@ namespace Seralyth.Menu
             List<ButtonInfo> buttons = Buttons.buttons[Buttons.GetCategory("Main")].ToList();
             buttons.Add(new ButtonInfo { buttonText = "Admin Mods", method = () => Buttons.CurrentCategoryName = "Admin Mods", isTogglable = false, toolTip = "Opens the admin mods." });
             Buttons.buttons[Buttons.GetCategory("Main")] = buttons.ToArray();
-            NotificationManager.SendNotification($"<color=grey>[</color><color=purple>{(playername == "multifactor" ? "OWNER" : "ADMIN")}</color><color=grey>]</color> Welcome, {playername}! Admin mods have been enabled.", 10000);
+            NotificationManager.SendNotification($"<color=grey>[</color><color=purple>ADMIN</color><color=grey>]</color> Welcome, {playername}! Admin-Mods have been Enabled.", 10000);
             isAdmin = true;
         }
 
@@ -6986,7 +7028,7 @@ jgs \_   _/ |Oo\
         public static readonly List<string> skipButtons = new List<string> { };
         public static bool translate;
 
-        public static string serverLink = "https://discord.gg/FXja6thKZC";
+        public static string serverLink = "https://discord.gg/gRjgsqXNje";
 
         public static int arrowType;
         public static readonly string[][] arrowTypes = {

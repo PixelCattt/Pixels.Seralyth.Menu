@@ -32,6 +32,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using Photon.Voice;
 using Photon.Voice.PUN;
+using Seralyth.Classes.Menu;
 using Seralyth.Extensions;
 using Seralyth.Managers;
 using Seralyth.Menu;
@@ -44,6 +45,7 @@ using System.IO;
 using System.Linq;
 using Unity.XR.CoreUtils;
 using UnityEngine;
+using Voxels;
 using static Seralyth.Menu.Main;
 using static Seralyth.Utilities.AssetUtilities;
 using static Seralyth.Utilities.GameModeUtilities;
@@ -1318,6 +1320,61 @@ namespace Seralyth.Mods
             }
         }
 
+        public static int digRadiusIndex = 1;
+        private static float digRadius = 1f;
+        public static readonly float[] digRadiuses = { 1f, 2.5f, 5f, 10f, 15f, 50f, 100f };
+        public static readonly string[] digRadiusNames = { "Normal", "Medium", "Large", "Huge", "Gigantic", "Colossal", "Whole Map" };
+
+        public static void ApplyDigRadius(int index)
+        {
+            digRadiusIndex = index;
+            digRadius = digRadiuses[index];
+        }
+
+        private static float digDelay = 0f;
+        public static void DigGun(bool dig)
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+
+                if (GetGunInput(true) && Time.time > digDelay)
+                {
+                    digDelay = Time.time + 0.1f;
+
+                    RaycastHit hit = GunData.Ray;
+                    if (hit.collider != null)
+                    {
+                        VoxelWorld world = hit.collider.GetComponentInParent<VoxelWorld>();
+
+                        if (world != null)
+                        {
+                            if (dig)
+                            {
+                                world.Mine(hit,
+                                    new VoxelAction(
+                                        OperationType.Subtract,
+                                        digRadius,
+                                        2.5f
+                                    )
+                                );
+                            }
+                            else
+                            {
+                                VoxelManager.PerformOperation(world, hit.point,
+                                    new VoxelAction(
+                                        OperationType.Add,
+                                        digRadius,
+                                        2.5f
+                                    )
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public static void CreateItem(object target, int hash, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angVelocity, long sendData = 0L, GameEntityManager manager = null)
         {
             GameEntityManager gameEntityManager = manager ?? ManagerRegistry.GhostReactor.GameEntityManager;
@@ -1560,6 +1617,40 @@ namespace Seralyth.Mods
         {
             int[] objectIds = ObjectByName.Select(x => x.Value).ToArray();
             CreateItem(RpcTarget.All, objectIds[Random.Range(0, objectIds.Length)], VRRig.LocalRig.transform.position + Vector3.up * 3f, Quaternion.identity, RandomVector3(15f), Vector3.zero);
+        }
+
+        public static String selectedObjectName = null;
+        public static void LoadSelectObject()
+        {
+            Buttons.CurrentCategoryName = "Select GR Object";
+
+            List<ButtonInfo> objectButtons = new List<ButtonInfo>();
+
+            objectButtons.Add(new ButtonInfo { buttonText = "Exit Select GR Object", method = () => Buttons.CurrentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the Fun Mods." });
+
+            foreach (var obj in Overpowered.ObjectByName)
+            {
+                string objectName = obj.Key;
+
+                objectButtons.Add(new ButtonInfo
+                {
+                    buttonText = objectName,
+                    overlapText = objectName,
+                    method = () => Overpowered.selectedObjectName = objectName,
+                    isTogglable = false,
+                    toolTip = $"Spawns {objectName} wherever your Hand desires."
+                });
+            }
+
+            Buttons.buttons[51] = objectButtons.ToArray();
+        }
+
+        public static void SpamSelectedObjectGun()
+        {
+            if (selectedObjectName != null)
+                SpamObjectGun(Overpowered.ObjectByName[selectedObjectName]);
+            else
+                NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> No GR Object Selected.", 1000);
         }
 
         public static Dictionary<string, bool[][]> Letters = new Dictionary<string, bool[][]> {
@@ -6018,18 +6109,24 @@ namespace Seralyth.Mods
 
             if (RopeSwingManager.instance.ropes.TryGetValue(RopeId, out GorillaRopeSwing Rope))
             {
-                var ClosestNode = Rope.nodes
-                    .Skip(1)
-                    .Select((v, i) => new
-                    {
-                        index = i,
-                        transform = v,
-                        distance = Vector3.Distance(GorillaTagger.Instance.bodyCollider.transform.position, v.transform.position)
-                    })
-                    .OrderBy(x => x.distance)
-                    .First();
+                var ropeNodes = Rope.nodes.Select((v, i) => new
+                {
+                    index = i,
+                    transform = v,
+                    distance = Vector3.Distance(GorillaTagger.Instance.bodyCollider.transform.position, v.transform.position)
+                }).ToArray();
 
-                if (ClosestNode.distance > 5f)
+                if (ropeNodes.Length == 0)
+                    return;
+
+                var flingNode = ropeNodes
+                    [
+                        ropeNodes.Length >= 5 ? ropeNodes.Length - 2 :
+                        ropeNodes.Length >= 3 ? ropeNodes.Length - 1 :
+                        ropeNodes.Length >= 1 ? ropeNodes.Length : 0
+                    ];
+
+                if (flingNode.distance > 5f)
                 {
                     if (RopeCoroutine != null)
                         CoroutineManager.instance.StopCoroutine(RopeCoroutine);
@@ -6037,11 +6134,11 @@ namespace Seralyth.Mods
                     RopeCoroutine = CoroutineManager.instance.StartCoroutine(RopeEnableRig());
 
                     VRRig.LocalRig.enabled = false;
-                    VRRig.LocalRig.transform.position = ClosestNode.transform.position;
+                    VRRig.LocalRig.transform.position = flingNode.transform.position;
                 }
 
-                if (Vector3.Distance(ServerPos, ClosestNode.transform.position) < 5f)
-                    RopeSwingManager.instance.SendSetVelocity_RPC(RopeId, ClosestNode.index, Velocity, true);
+                if (Vector3.Distance(ServerPos, flingNode.transform.position) < 5f)
+                    RopeSwingManager.instance.SendSetVelocity_RPC(RopeId, flingNode.index, Velocity, true);
                 else
                     RopeDelay = 0f;
 
@@ -6052,32 +6149,137 @@ namespace Seralyth.Mods
         public static void BetaSetRopeVelocity(GorillaRopeSwing Rope, Vector3 Velocity) =>
             BetaSetRopeVelocity(RopeSwingManager.instance.ropes.FirstOrDefault(x => x.Value == Rope).Key, Velocity);
 
+        public static List<GorillaRopeSwing> selectedRopes = new List<GorillaRopeSwing>();
+        public static GorillaRopeSwing currentGunRope = null;
+        public static void SelectRopeGun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                RaycastHit Ray = GunData.Ray;
+                GameObject NewPointer = GunData.NewPointer;
+
+                if (GetGunInput(true))
+                {
+                    if (Ray.collider.GetComponentInParent<GorillaRopeSwing>() != null)
+                    {
+                        GorillaRopeSwing rope = Ray.collider.GetComponentInParent<GorillaRopeSwing>();
+
+                        if (rope != currentGunRope)
+                        {
+                            currentGunRope = rope;
+
+                            if (!selectedRopes.Contains(rope))
+                            {
+                                selectedRopes.Add(rope);
+                            }
+                            else
+                            {
+                                selectedRopes.Remove(rope);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    currentGunRope = null;
+                }
+            }
+            else
+            {
+                currentGunRope = null;
+            }
+        }
+
         private static float randomRopeDelay;
+        private static int currentRopeIndex = 0;
         private static GorillaRopeSwing randomRope;
-        public static GorillaRopeSwing GetRandomRope()
+        public static GorillaRopeSwing GetRandomRope(int type)
         {
             if (Time.time > randomRopeDelay)
             {
-                randomRopeDelay = Time.time + 0.5f;
-                randomRope = RopeSwingManager.instance.ropes.Values.OrderBy(_ => Random.value).FirstOrDefault();
+                randomRopeDelay = Time.time + 0.25f;
+
+                List<GorillaRopeSwing> ropeList = null;
+
+                if (type == 1)
+                {
+                    ropeList = RopeSwingManager.instance.ropes.Values.ToList();
+                }
+                else if (type == 2)
+                {
+                    ropeList = selectedRopes;
+                }
+                else if (type == 3)
+                {
+                    ropeList = VRRigCache.ActiveRigs
+                        .Where(rig => rig.currentRopeSwing != null)
+                        .Select(rig => rig.currentRopeSwing)
+                        .ToList();
+                }
+
+                if (ropeList == null || ropeList.Count == 0)
+                {
+                    randomRope = null;
+                    currentRopeIndex = 0;
+
+                    return null;
+                }
+
+                if (currentRopeIndex >= ropeList.Count)
+                    currentRopeIndex = 0;
+
+                randomRope = ropeList[currentRopeIndex];
+
+                currentRopeIndex++;
             }
+
             return randomRope;
         }
 
-        private static float RopeDelay;
-        public static void JoystickRopeControl()
+        private static float RopeDelay = 0;
+        public static void JoystickRopeControlAll()
         {
-            Vector2 r = rightJoystick;
-            Vector2 l = leftJoystick;
-
-            Vector2 stick = (l.sqrMagnitude > r.sqrMagnitude) ? l : r;
-
-            if (stick.sqrMagnitude > 0.0025f && Time.time > RopeDelay)
+            if ((Mathf.Abs(leftJoystick.x) > 0.05f || Mathf.Abs(rightJoystick.y) > 0.05f || Mathf.Abs(leftJoystick.y) > 0.05f) && Time.time > RopeDelay)
             {
-                RopeDelay = Time.time + 0.125f;
+                RopeDelay = Time.time + 0.25f;
 
-                GorillaRopeSwing rope = GetRandomType<GorillaRopeSwing>(0.25f);
-                BetaSetRopeVelocity(rope, new Vector3(stick.x * 100f, stick.y * 100f, 0f));
+                GorillaRopeSwing rope = GetRandomRope(1);
+
+                if (rope == null)
+                    return;
+
+                BetaSetRopeVelocity(rope, new Vector3(leftJoystick.x * 100f, rightJoystick.y * 100f, leftJoystick.y * 100f));
+            }
+        }
+
+        public static void JoystickRopeControlSelected()
+        {
+            if ((Mathf.Abs(leftJoystick.x) > 0.05f || Mathf.Abs(rightJoystick.y) > 0.05f || Mathf.Abs(leftJoystick.y) > 0.05f) && Time.time > RopeDelay)
+            {
+                RopeDelay = Time.time + 0.25f;
+
+                GorillaRopeSwing rope = GetRandomRope(2);
+
+                if (rope == null)
+                    return;
+
+                BetaSetRopeVelocity(rope, new Vector3(leftJoystick.x * 100f, rightJoystick.y * 100f, leftJoystick.y * 100f));
+            }
+        }
+
+        public static void JoystickRopeControlGrabbed()
+        {
+            if ((Mathf.Abs(leftJoystick.x) > 0.05f || Mathf.Abs(rightJoystick.y) > 0.05f || Mathf.Abs(leftJoystick.y) > 0.05f) && Time.time > RopeDelay)
+            {
+                RopeDelay = Time.time + 0.25f;
+
+                GorillaRopeSwing rope = GetRandomRope(3);
+
+                if (rope == null)
+                    return;
+
+                BetaSetRopeVelocity(rope, new Vector3(leftJoystick.x * 100f, rightJoystick.y * 100f, leftJoystick.y * 100f));
             }
         }
 
@@ -6104,45 +6306,44 @@ namespace Seralyth.Mods
         {
             if (rightTrigger > 0.5f && Time.time > RopeDelay)
             {
-                RopeDelay = Time.time + 0.125f;
+                RopeDelay = Time.time + 0.25f;
 
-                GorillaRopeSwing rope = GetRandomRope();
+                GorillaRopeSwing rope = GetRandomRope(1);
+
+                if (rope == null)
+                    return;
+
+                BetaSetRopeVelocity(rope, RandomVector3(100f));
+            }
+        }
+
+        public static void SpazSelectedRopes()
+        {
+            if (rightTrigger > 0.5f && Time.time > RopeDelay)
+            {
+                RopeDelay = Time.time + 0.25f;
+
+                GorillaRopeSwing rope = GetRandomRope(2);
+
+                if (rope == null)
+                    return;
+
                 BetaSetRopeVelocity(rope, RandomVector3(100f));
             }
         }
 
         public static void SpazGrabbedRopes()
         {
-            if (Time.time > RopeDelay)
+            if (rightTrigger > 0.5f && Time.time > RopeDelay)
             {
-                RopeDelay = Time.time + 0.125f;
-                VRRig randomRig = VRRigExtensions.ActiveRigs
-                    .Where(rig => rig.currentRopeSwing != null)
-                    .OrderBy(_ => Random.value)
-                    .FirstOrDefault();
+                RopeDelay = Time.time + 0.25f;
 
-                if (randomRig != null)
-                    BetaSetRopeVelocity(randomRig.currentRopeSwing, RandomVector3(100f));
-            }
-        }
+                GorillaRopeSwing rope = GetRandomRope(3);
 
-        public static void FlingRopeGun()
-        {
-            if (GetGunInput(false))
-            {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                if (rope == null)
+                    return;
 
-                if (GetGunInput(true))
-                {
-                    GorillaRopeSwing gunTarget = Ray.collider.GetComponentInParent<GorillaRopeSwing>();
-
-                    if (gunTarget && Time.time > RopeDelay)
-                    {
-                        RopeDelay = Time.time + 0.125f;
-                        BetaSetRopeVelocity(gunTarget, RandomVector3(100f));
-                    }
-                }
+                BetaSetRopeVelocity(rope, RandomVector3(100f));
             }
         }
 
@@ -6155,10 +6356,94 @@ namespace Seralyth.Mods
 
                 if (GetGunInput(true) && Time.time > RopeDelay)
                 {
-                    RopeDelay = Time.time + 0.125f;
+                    RopeDelay = Time.time + 0.25f;
 
-                    GorillaRopeSwing rope = GetRandomRope();
+                    GorillaRopeSwing rope = GetRandomRope(1);
+
+                    if (rope == null)
+                        return;
+
                     BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                }
+            }
+        }
+
+        public static void FlingSelectedRopesGun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                GameObject NewPointer = GunData.NewPointer;
+
+                if (GetGunInput(true) && Time.time > RopeDelay)
+                {
+                    RopeDelay = Time.time + 0.25f;
+
+                    GorillaRopeSwing rope = GetRandomRope(2);
+
+                    if (rope == null)
+                        return;
+
+                    BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                }
+            }
+        }
+
+        public static void FlingGrabbedRopesGun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                GameObject NewPointer = GunData.NewPointer;
+
+                if (GetGunInput(true) && Time.time > RopeDelay)
+                {
+                    RopeDelay = Time.time + 0.25f;
+
+                    GorillaRopeSwing rope = GetRandomRope(3);
+
+                    if (rope == null)
+                        return;
+
+                    BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                }
+            }
+        }
+
+        public static void PullRopeGun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                RaycastHit Ray = GunData.Ray;
+
+                if (GetGunInput(true))
+                {
+                    GorillaRopeSwing targetRope = Ray.collider.GetComponentInParent<GorillaRopeSwing>();
+                    if (targetRope && Time.time > RopeDelay)
+                    {
+                        RopeDelay = Time.time + 0.25f;
+                        BetaSetRopeVelocity(targetRope, (GorillaTagger.Instance.bodyCollider.transform.position - targetRope.transform.position).normalized * 100f);
+                    }
+                }
+            }
+        }
+
+        public static void PushRopeGun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                RaycastHit Ray = GunData.Ray;
+
+                if (GetGunInput(true))
+                {
+                    GorillaRopeSwing targetRope = Ray.collider.GetComponentInParent<GorillaRopeSwing>();
+                    if (targetRope && Time.time > RopeDelay)
+                    {
+                        RopeDelay = Time.time + 0.25f;
+                        BetaSetRopeVelocity(targetRope, (targetRope.transform.position - GorillaTagger.Instance.bodyCollider.transform.position).normalized * 100f);
+                    }
                 }
             }
         }

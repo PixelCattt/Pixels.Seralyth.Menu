@@ -218,12 +218,9 @@ namespace Seralyth.Managers
                             {
                                 try
                                 {
-                                    if (Buttons.buttons[Buttons.GetCategory("Temporary Category")].Contains(button) || button.hideFromArraylist)
+                                    if (!button.enabled || button.hideFromArraylist || (hideSettings && (!hideSettings || Buttons.categoryNames[categoryIndex].Contains("Settings"))) || Buttons.buttons[Buttons.GetCategory("Temporary Category")].Contains(button))
                                         continue;
 
-                                    if (!button.enabled || (hideSettings && (!hideSettings ||
-                                                                             Buttons.categoryNames[categoryIndex]
-                                                                                 .Contains("Settings")))) continue;
                                     string buttonText = button.overlapText ?? button.buttonText;
 
                                     if (inputTextColor != "green")
@@ -292,6 +289,8 @@ namespace Seralyth.Managers
             catch (Exception e) { LogManager.Log(e); }
         }
 
+        public static readonly Dictionary<string, Coroutine> notificationCoroutines = new Dictionary<string, Coroutine>();
+        public static readonly Dictionary<string, int> notificationCounts = new Dictionary<string, int>();
         /// <summary>
         /// Displays a notification message to the user, with optional customization for display duration and
         /// formatting.
@@ -324,8 +323,17 @@ namespace Seralyth.Managers
                     }
                 }
 
-                if (/*notificationSoundIndex != 0 && */(!soundOnError || notificationText.Contains("<color=red>ERROR</color>")) && Time.time > timeMenuStarted + 5f)
-                    SoundManager.Play(SoundManager.DefaultSounds["Notification"], action: clip => AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, buttonClickVolume / 10f));
+                if ((!soundOnError || notificationText.Contains("<color=red>ERROR</color>")) && Time.time > timeMenuStarted + 5f)
+                {
+                    SoundManager.Play(
+                        SoundManager.DefaultSounds["Notification"],
+                        action: clip => AudioSource.PlayClipAtPoint(
+                            clip,
+                            Camera.main.transform.position,
+                            buttonClickVolume / 10f
+                        )
+                    );
+                }
 
                 if (inputTextColor != "green")
                     notificationText = notificationText.Replace("<color=green>", "<color=" + inputTextColor + ">");
@@ -337,30 +345,100 @@ namespace Seralyth.Managers
 
                 notificationText = notificationText.TrimEnd('\n', '\r');
 
-                float expireTime = Time.time + (clearTime / 1000f);
-                NotificationEntry lastEntry = activeNotifications.Count > 0 ? activeNotifications[^1] : null;
+                string baseNotification = notificationText;
 
-                if (lastEntry != null && PreviousNotifi == notificationText && stackNotifications)
+                string[] lines = NotificationManager.notificationText.text
+                    .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+                List<string> notificationLines = new List<string>(lines);
+
+                int existingIndex = -1;
+
+                for (int i = 0; i < notificationLines.Count; i++)
                 {
-                    lastEntry.Counter++;
-                    lastEntry.ExpireTime = expireTime;
-                    NotifiCounter = lastEntry.Counter;
+                    string compareLine = notificationLines[i];
+
+                    int counterStart = compareLine.LastIndexOf(" [x", StringComparison.Ordinal);
+                    if (counterStart > -1)
+                        compareLine = compareLine.Substring(0, counterStart);
+
+                    if (compareLine == baseNotification)
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+
+                if (existingIndex != -1)
+                {
+                    if (!notificationCounts.ContainsKey(baseNotification))
+                        notificationCounts[baseNotification] = 1;
+
+                    notificationCounts[baseNotification]++;
+
+                    string updatedNotification =
+                        $"{baseNotification} [x{notificationCounts[baseNotification]}]";
+
+                    notificationLines.RemoveAt(existingIndex);
+
+                    notificationLines.Add(updatedNotification);
+
+                    NotificationManager.notificationText.SafeSetText(
+                        string.Join(Environment.NewLine, notificationLines)
+                    );
+
+                    if (notificationCoroutines.TryGetValue(baseNotification, out Coroutine oldCoroutine))
+                    {
+                        CoroutineManager.instance.StopCoroutine(oldCoroutine);
+                        notificationCoroutines.Remove(baseNotification);
+                    }
+
+                    Coroutine newCoroutine = CoroutineManager.instance.StartCoroutine(
+                        ClearSpecificNotification(baseNotification, clearTime / 1000f)
+                    );
+
+                    notificationCoroutines[baseNotification] = newCoroutine;
                 }
                 else
                 {
-                    NotifiCounter = 0;
-                    PreviousNotifi = notificationText;
+                    notificationCounts[baseNotification] = 1;
 
-                    activeNotifications.Add(new NotificationEntry
+                    notificationLines.Add(baseNotification);
+
+                    while (notificationLines.Count > 25)
                     {
-                        RawText = notificationText,
-                        BaseDisplay = notificationText,
-                        Counter = 0,
-                        ExpireTime = expireTime
-                    });
+                        string removed = notificationLines[0];
+
+                        int counterStart = removed.LastIndexOf(" [x", StringComparison.Ordinal);
+                        string removedBase = counterStart > -1
+                            ? removed.Substring(0, counterStart)
+                            : removed;
+
+                        notificationLines.RemoveAt(0);
+
+                        if (notificationCoroutines.TryGetValue(removedBase, out Coroutine oldCoroutine))
+                        {
+                            CoroutineManager.instance.StopCoroutine(oldCoroutine);
+                            notificationCoroutines.Remove(removedBase);
+                        }
+
+                        if (notificationCounts.ContainsKey(removedBase))
+                            notificationCounts.Remove(removedBase);
+                    }
+
+                    NotificationManager.notificationText.SafeSetText(
+                        string.Join(Environment.NewLine, notificationLines)
+                    );
+
+                    Coroutine newCoroutine = CoroutineManager.instance.StartCoroutine(
+                        ClearSpecificNotification(baseNotification, clearTime / 1000f)
+                    );
+
+                    notificationCoroutines[baseNotification] = newCoroutine;
                 }
 
-                RebuildNotificationText();
+                if (noRichText)
+                    NotificationManager.notificationText.SafeSetText(NoRichtextTags(NotificationManager.notificationText.text));
 
                 if (lowercaseMode)
                     NotificationManager.notificationText.SafeSetText(NotificationManager.notificationText.text.ToLower());
@@ -368,13 +446,56 @@ namespace Seralyth.Managers
                 if (uppercaseMode)
                     NotificationManager.notificationText.SafeSetText(NotificationManager.notificationText.text.ToUpper());
 
+                NotificationManager.notificationText.richText = !noRichText;
+
                 if (narrateNotifications)
-                    NarrateText(NoRichtextTags(noPrefix ? RemovePrefix(notificationText) : notificationText));
+                    NarrateText(
+                        NoRichtextTags(
+                            noPrefix
+                                ? RemovePrefix(notificationText)
+                                : notificationText
+                        )
+                    );
             }
             catch (Exception e)
             {
                 LogManager.LogError($"Notification failed.\nNotification: {notificationText}\nException: {e.Message}");
             }
+        }
+
+        private static IEnumerator ClearSpecificNotification(string notification, float time)
+        {
+            yield return new WaitForSeconds(time);
+
+            string[] lines = NotificationManager.notificationText.text
+                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            List<string> notificationLines = new List<string>(lines);
+
+            for (int i = 0; i < notificationLines.Count; i++)
+            {
+                string compareLine = notificationLines[i];
+
+                int counterStart = compareLine.LastIndexOf(" [x", StringComparison.Ordinal);
+                if (counterStart > -1)
+                    compareLine = compareLine.Substring(0, counterStart);
+
+                if (compareLine == notification)
+                {
+                    notificationLines.RemoveAt(i);
+                    break;
+                }
+            }
+
+            NotificationManager.notificationText.SafeSetText(
+                string.Join(Environment.NewLine, notificationLines)
+            );
+
+            if (notificationCoroutines.ContainsKey(notification))
+                notificationCoroutines.Remove(notification);
+
+            if (notificationCounts.ContainsKey(notification))
+                notificationCounts.Remove(notification);
         }
 
         public static void PlayNotificationSound() =>

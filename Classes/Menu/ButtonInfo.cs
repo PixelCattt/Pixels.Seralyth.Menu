@@ -43,6 +43,8 @@ namespace Seralyth.Classes.Menu
         public bool isTogglable = true;
 
         public bool hideFromArraylist;
+        public bool hideFromEnabled;
+
         public bool label;
         public bool incremental;
         public bool detected;

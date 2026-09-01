@@ -53,8 +53,8 @@ namespace Seralyth.Classes.Menu
         public static readonly string ServerWebsocket = "wss://menu.seralyth.software";
 
         // Custom ServerData URLs
-        public static readonly string ServerDataOverwriteEndpoint = "https://gtag-serverdata.pixelcatt.workers.dev/serverdata";
-        public static readonly string ServerDataTelemetryEndpoint = "https://gtag-serverdata.pixelcatt.workers.dev/telemetry";
+        public static readonly string ServerDataOverwriteEndpoint = "https://gtag-api.pixelcatt.workers.dev/serverdata";
+        public static readonly string ServerDataTelemetryEndpoint = "https://gtag-api.pixelcatt.workers.dev/telemetry";
 
         // Do not change this unless you are hosting unofficial files for Console
         public const string AssetURL = "https://raw.githubusercontent.com/Seralyth/Console/refs/heads/master/ServerData";

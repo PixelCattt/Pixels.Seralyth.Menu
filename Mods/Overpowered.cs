@@ -1638,6 +1638,7 @@ namespace Seralyth.Mods
                     overlapText = objectName,
                     method = () => Overpowered.selectedObjectName = objectName,
                     isTogglable = false,
+                    hideFromSearch = true,
                     toolTip = $"Spawns {objectName} wherever your Hand desires."
                 });
             }

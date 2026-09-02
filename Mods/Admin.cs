@@ -2282,6 +2282,7 @@ namespace Seralyth.Mods
                                 AdminMods.SelectVideo(videoName, videoUrl);
                             },
                             isTogglable = false,
+                            hideFromSearch = true,
                             toolTip = $"Selects the Video: {videoName} to be used on the VideoPlayer."
                         });
                     }

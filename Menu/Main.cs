@@ -1624,6 +1624,7 @@ namespace Seralyth.Menu
 
             lastPressedKeys = keysPressed;
         }
+
         private static void HandleSearchOrPrompt()
         {
             if (isSearching)
@@ -1635,6 +1636,9 @@ namespace Seralyth.Menu
                     {
                         try
                         {
+                            if (v.hideFromSearch)
+                                continue;
+
                             List<string> texts = v.aliases == null ? new List<string>() : v.aliases.ToList();
                             texts.Add(v.overlapText ?? v.buttonText);
 
@@ -1653,8 +1657,7 @@ namespace Seralyth.Menu
                         {
                             try
                             {
-                                if (((Buttons.categoryNames[categoryIndex].Contains("Admin") ||
-                                     Buttons.categoryNames[categoryIndex] == "Mod Givers") && !isAdmin) || (v.detected && !allowDetected))
+                                if (v.hideFromSearch || ((Buttons.categoryNames[categoryIndex] == "Admin Mods" || Buttons.categoryNames[categoryIndex] == "Mod Givers") && !isAdmin) || (v.detected && !allowDetected))
                                     continue;
 
                                 List<string> texts = v.aliases == null ? new List<string>() : v.aliases.ToList();
@@ -1671,13 +1674,14 @@ namespace Seralyth.Menu
 
                 if (searchedMods.Count > 0)
                 {
-                    ButtonInfo[] buttons = StringsToInfos(Alphabetize(InfosToStrings(searchedMods.ToArray())));
-                    ButtonInfo button = buttons[0];
+                    ButtonInfo button = searchedMods
+                        .OrderBy(x => x.buttonText.ClearTags())
+                        .First();
 
                     if (button.incremental)
                         ToggleIncremental(button.buttonText, UnityInput.GetKey(Key.LeftShift));
                     else
-                        Toggle(buttons[0].buttonText, true);
+                        Toggle(button.buttonText, true);
                 }
             }
             else if (CurrentPrompt != null && CurrentPrompt.IsText)
@@ -2824,13 +2828,15 @@ namespace Seralyth.Menu
                     if (isSearching)
                     {
                         List<ButtonInfo> searchedMods = new List<ButtonInfo>();
-
                         if (nonGlobalSearch && Buttons.CurrentCategoryName != "Main")
                         {
                             foreach (ButtonInfo v in Buttons.buttons[Buttons.CurrentCategoryIndex])
                             {
                                 try
                                 {
+                                    if (v.hideFromSearch)
+                                        continue;
+
                                     List<string> texts = v.aliases == null ? new List<string>() : v.aliases.ToList();
                                     texts.Add(v.overlapText ?? v.buttonText);
 
@@ -2843,16 +2849,13 @@ namespace Seralyth.Menu
                         else
                         {
                             int categoryIndex = 0;
-                            foreach (ButtonInfo[] buttonlist in Buttons.buttons)
+                            foreach (ButtonInfo[] buttonInfos in Buttons.buttons)
                             {
-                                foreach (ButtonInfo v in buttonlist)
+                                foreach (ButtonInfo v in buttonInfos)
                                 {
                                     try
                                     {
-                                        if (((Buttons.categoryNames[categoryIndex].Contains("Admin") ||
-                                            Buttons.categoryNames[categoryIndex] == "Mod Givers") &&
-                                            !isAdmin)
-                                            || (v.detected && !allowDetected))
+                                        if (v.hideFromSearch || ((Buttons.categoryNames[categoryIndex] == "Admin Mods" || Buttons.categoryNames[categoryIndex] == "Mod Givers") && !isAdmin) || (v.detected && !allowDetected))
                                             continue;
 
                                         List<string> texts = v.aliases == null ? new List<string>() : v.aliases.ToList();

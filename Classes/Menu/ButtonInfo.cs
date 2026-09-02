@@ -44,6 +44,7 @@ namespace Seralyth.Classes.Menu
 
         public bool hideFromArraylist;
         public bool hideFromEnabled;
+        public bool hideFromSearch;
 
         public bool label;
         public bool incremental;

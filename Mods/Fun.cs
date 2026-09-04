@@ -2825,7 +2825,7 @@ Piece Name: {gunTarget.name}";
             VRRig.LocalRig.enabled = false;
             VRRig.LocalRig.transform.position = HoverboardPos - Vector3.up * 0.5f;
 
-            GTPlayer.Instance.SetHoverAllowed(true);
+            GTPlayer.Instance.isHoverAllowed = true;
 
             HoverboardVisual hoverboardVisual = VRRig.LocalRig.hoverboardVisual;
 
@@ -2900,7 +2900,7 @@ Piece Name: {gunTarget.name}";
         public static void SpawnHoverboard()
         {
             BetaDropBoard(VRRig.LocalRig.transform.position, VRRig.LocalRig.transform.rotation, Vector3.zero, Vector3.zero, RandomColor());
-            GTPlayer.Instance.SetHoverAllowed(true);
+            GTPlayer.Instance.isHoverAllowed = true;
         }
 
         private static float hoverboardSpamDelay;
@@ -5874,7 +5874,7 @@ Piece Name: {gunTarget.name}";
             VRRig.LocalRig.enabled = false;
             VRRig.LocalRig.transform.position = HoverboardPos - Vector3.up * 1f;
 
-            GTPlayer.Instance.SetHoverAllowed(true);
+            GTPlayer.Instance.isHoverAllowed = true;
             GTPlayer.Instance.SetHoverActive(true);
 
             HoverboardVisual hoverboardVisual = VRRig.LocalRig.hoverboardVisual;

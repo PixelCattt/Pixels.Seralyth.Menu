@@ -1817,6 +1817,9 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Projectile Orbit <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Projectiles.ProjectileOrbit, toolTip = "Orbits projectiles around you when holding <color=green>trigger</color>."},
                 new ButtonInfo { buttonText = "Projectile Aura <color=grey>[</color><color=green>T</color><color=grey>]</color>", method = Projectiles.ProjectileAura, toolTip = "Randomly spawns projectiles around you when holding <color=green>trigger</color>."},
 
+                new ButtonInfo { buttonText = "Projectile Minigun <color=grey>[</color><color=green>G</color><color=grey>]</color>", method = Projectiles.ProjectileMinigun, toolTip = "Spawns projectiles towards wherever your hand desires."},
+                new ButtonInfo { buttonText = "Give Projectile Minigun", method = Projectiles.GiveProjectileMinigun, toolTip = "Gives whoever your hand desires a projectile minigun." },
+
                 new ButtonInfo { buttonText = "Snowball Punch Mod", method = Projectiles.SnowballPunchMod, toolTip = "Flings people when you punch them."},
                 new ButtonInfo { buttonText = "Snowball Boxing", method = Projectiles.SnowballBoxing, toolTip = "Gives everyone the punch mod by using snowballs."},
                 new ButtonInfo { buttonText = "Snowball Dash <color=grey>[</color><color=green>A</color><color=grey>]</color>", method = Projectiles.SnowballDash, toolTip = "Allows other players to dash themself into the air with the snowballs."},
@@ -1843,8 +1846,6 @@ namespace Seralyth.Menu
 
                 new ButtonInfo { buttonText = "Snowball Push Player Gun", method = Projectiles.SnowballPushPlayerGun, toolTip = "Flings whoever your hand desires away from you."},
                 new ButtonInfo { buttonText = "Snowball Push All Players", method = Projectiles.SnowballPushAllPlayers, toolTip = "Flings everyone away from you."},
-
-
 
                 new ButtonInfo { buttonText = "Snowball Buttocks", method = Projectiles.SnowballButtocks, disableMethod = Projectiles.DisableSnowballGenitals, toolTip = "Gives you fake buttocks using the snowballs." },
                 new ButtonInfo { buttonText = "Snowball Breasts", method = Projectiles.SnowballBreasts, disableMethod = Projectiles.DisableSnowballGenitals, toolTip = "Gives you fake breasts using the snowballs." },
@@ -2464,24 +2465,28 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Admin Pigeon", method = () => AdminMods.Pigeon(), disableMethod = () => AdminMods.RemovePigeon(), toolTip = "Spawns a Pigeon in your Hand." },
 
                 /*
-                new ButtonInfo { buttonText = "Physics Gun", method = () => AdminMods.PhysicsGun(), toolTip = "Gives you a working Physics Gun." },
+                new ButtonInfo { buttonText = "Physics Gun", method = () => AdminMods.PhysicsGun(), toolTip = "Gives you a Physics Gun." },
                 
-                new ButtonInfo { buttonText = "Boombox", method = () => AdminMods.Boombox(), toolTip = "Spawns you a working Boombox." },
+                new ButtonInfo { buttonText = "Boombox", method = () => AdminMods.Boombox(), toolTip = "Spawns a Boombox." },
                 
-                new ButtonInfo { buttonText = "Wii Remote", method = () => AdminMods.WiiRemote(), toolTip = "Uses a Wii Remote holdable." },
+                new ButtonInfo { buttonText = "Wii Remote", method = () => AdminMods.WiiRemote(), toolTip = "Gives you a Wii Remote to throw other People around." },
                 
-                new ButtonInfo { buttonText = "Ban Hammer", method = () => AdminMods.BanHammer(), toolTip = "Gives you a working Ban-Hammer to Block People from joining Rooms for a specified Amount of Time." },
+                new ButtonInfo { buttonText = "Ban Hammer", method = () => AdminMods.BanHammer(), toolTip = "Gives you a Ban-Hammer to Block People from joining Rooms for a specified Amount of Time." },
                 
-                new ButtonInfo { buttonText = "Rat Gun", method = () => AdminMods.RatGun(), toolTip = "Shoots or spawns rats." },
+                new ButtonInfo { buttonText = "Rat Gun", method = () => AdminMods.RatGun(), toolTip = "Spawns Rats." },
                 
-                new ButtonInfo { buttonText = "Cherry Bomb", method = () => AdminMods.CherryBomb(), toolTip = "Throws or spawns a Cherry Bomb." },
+                new ButtonInfo { buttonText = "Cherry Bomb", method = () => AdminMods.CherryBomb(), toolTip = "Spawns a Cherry Bomb." },
 
                 new ButtonInfo { buttonText = "NoliStar", method = () => AdminMods.NoliStar(), toolTip = "Spawns a NoliStar." },
                 
                 new ButtonInfo { buttonText = "Ravenger", method = () => AdminMods.Ravenger(), toolTip = "Spawns a Ravenger." },
 
-                new ButtonInfo { buttonText = "Bag", method = () => AdminMods.Bag(), toolTip = "Spawns a Bag Asset." },
+                new ButtonInfo { buttonText = "Bag", method = () => AdminMods.Bag(), toolTip = "Gives you a Bag." },
                 */
+
+                ButtonHelper.CreateNumeric("Admin Asset Volume", 0, 10, 10, AdminMods.ChangeAssetVolume, v => (v / 10f).ToString(), "Changes the Volume for the Asset Volume Mods."),
+                new ButtonInfo { buttonText = "Admin Set Asset Volume All", method =() => AdminMods.SetAssetVolumeAll(), toolTip = "Changes the Volume for all Assets."},
+                new ButtonInfo { buttonText = "Admin Set Asset Volume Gun", method =() => AdminMods.SetAssetVolumeGun(), toolTip = "Changes the Volume of whatever Asset your Hand desires."},
 
                 new ButtonInfo { buttonText = "Admin Remove All Assets", method =() => AdminMods.RemoveAllAssets(), isTogglable = false, toolTip = "Removes all Console Assets."},
             },
@@ -2689,14 +2694,12 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "GPL v3", method =() => Process.Start("https://www.gnu.org/licenses/gpl-3.0.html"), isTogglable = false, toolTip = "The GNU General Public License Version 3 is the license that my menu uses. It proveides a \"free, copyleft license for software and other kinds of works.\"", legal = true},
             },
 
-            new[] // Custom Map Mods [39]
-            {
+            new[] { // Custom Map Mods [39]
                 new ButtonInfo { buttonText = "Exit Custom Map Mods", method =() => CurrentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods.", legal = true},
                 new ButtonInfo { buttonText = "You have not loaded a map.", label = true }
             },
 
-            new[] // Admin Mod Givers [40]
-            {
+            new[] { // Admin Mod Givers [40]
                 new ButtonInfo { buttonText = "Exit Admin Mod Givers", method =() => CurrentCategoryName = "Admin Mods", isTogglable = false, toolTip = "Returns you back to the Admin mods.", legal = true},
 
                 new ButtonInfo { buttonText = "Give Fly Gun", method = AdminMods.GiveFlyGun, toolTip = "Gives whoever you want fly when they hold their right thumb down if they're using console."},
@@ -2708,15 +2711,13 @@ namespace Seralyth.Menu
 
             new ButtonInfo[] { }, // Chat Messages [41]
 
-            new[] // Macros [42]
-            {
+            new[] { // Macros [42]
                 new ButtonInfo { buttonText = "Exit Macros", method =() => CurrentCategoryName = "Movement Mods", isTogglable = false, toolTip = "Returns you back to the movement mods.", legal = true},
                 new ButtonInfo { buttonText = "Record <color=grey>[</color><color=green>LT</color><color=grey>]</color>", method = Movement.RecordMacro, toolTip = "Record your macros with your <color=green>left trigger</color>." },
                 new ButtonInfo { buttonText = "Reload Macros", method = Movement.LoadMacros, isTogglable = false, toolTip = "Reloads your macros." },
             },
 
-            new[] // Detected Mods [43]
-            {
+            new[] { // Detected Mods [43]
                 new ButtonInfo { buttonText = "Exit Detected Mods", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true},
 
                 new ButtonInfo { buttonText = "Detected Lag Gun", overlapText = "Lag Gun", method = Detected.LagGun, detected = true, toolTip = "Lags whoever your hand desires."},
@@ -2810,38 +2811,32 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Ban Self", method = Detected.BanSelf, detected = true, toolTip = "Bans yourself from the game for an hour."}
             },
 
-            new[] // Detected Settings [44]
-            {
+            new[] { // Detected Settings [44]
                 new ButtonInfo { buttonText = "Exit Detected Settings", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true},
 
                 new ButtonInfo { buttonText = "Switch to Modded Gamemode", enableMethod =() => Detected.moddedGamemode = true, disableMethod =() => Detected.moddedGamemode = false, toolTip = "Automatically sets the gamemode as modded when changed."},
                 new ButtonInfo { buttonText = "Isolate Others", toolTip = "Allows you to still be seen when isolating players."}
             },
 
-            new[] // Achievements [45]
-            {
+            new[] { // Achievements [45]
                 new ButtonInfo { buttonText = "Exit Achievements", method = () => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true}
             },
 
-            new[] // Mod List [46]
-            {
+            new[] { // Mod List [46]
                 new ButtonInfo { buttonText = "Exit Mod List", method = () => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true}
             },
 
-            new[] // Patreon Mods [47]
-            {
+            new[] { // Patreon Mods [47]
                 new ButtonInfo { buttonText = "Exit Patreon Mods", method = () => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true},
                 new ButtonInfo { buttonText = "No Patreon Indicator", enableMethod =() => PatreonManager.ShowIndicator(true), method = PatreonManager.ConstantHideIndicator, disableMethod =() => PatreonManager.ShowIndicator(false), toolTip = "Disables the membership that appears above your head to others with the menu."}
             },
 
-            new[] // Patreon Settings [48]
-            {
+            new[] { // Patreon Settings [48]
                 new ButtonInfo { buttonText = "Exit Patreon Settings", method =() => CurrentCategoryName = "Main", isTogglable = false, toolTip = "Returns you back to the main page.", legal = true},
                 new ButtonInfo { buttonText = "Disable Patreon Indicators", enableMethod =() => PatreonManager.IndicatorsEnabled = false, disableMethod =() => PatreonManager.IndicatorsEnabled = true, toolTip = "Disables the memberships that appear above people's head with the menu."}
             },
 
-            new[] // Voice Changers [49]
-            {
+            new[] { // Voice Changers [49]
                 new ButtonInfo { buttonText = "Exit Voice Changers", method =() => CurrentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods.", legal = true},
                 new ButtonInfo { buttonText = "Echo Microphone", enableMethod =() => Fun.EchoMicrophone(true), disableMethod =() => Fun.EchoMicrophone(false), toolTip = "Makes your microphone echo."},
                 new ButtonInfo { buttonText = "Glitchy Microphone", enableMethod =() => Fun.GlitchyMicrophone(true), disableMethod =() => Fun.GlitchyMicrophone(false), toolTip = "Makes your microphone glitchy."},
@@ -2852,18 +2847,15 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Very Low Pitch Microphone", enableMethod =() => Fun.SetMicrophonePitch(0.5f), disableMethod =() => Fun.SetMicrophonePitch(1f), toolTip = "Makes your microphone very very low pitched."},
             },
 
-            new[] // Sound Properties [50]
-            {
+            new[] { // Sound Properties [50]
                 new ButtonInfo { buttonText = "Exit Sound's Properties", method = () => CurrentCategoryName = "Soundboard", isTogglable = false, toolTip = "Returns you back to the Soundboard page.", legal = true}
             },
 
-            new[] // Select GR Object [51]
-            {
+            new[] { // Select GR Object [51]
                 new ButtonInfo { buttonText = "Exit Select GR Object", method =() => currentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods."}
             },
 
-            new[] // Admin-Command Blocker Settings [52]
-            {
+            new[] { // Admin-Command Blocker Settings [52]
                 new ButtonInfo { buttonText = "Exit Admin-Command Blocker Settings", method =() => currentCategoryName = "Safety Settings", isTogglable = false, toolTip = "Returns you back to the safety settings."},
 
                 new ButtonInfo { buttonText = "Admin-Command Blocker", enableMethod = () => AdminPermissionManager.blockingEnabled = true, disableMethod = () => AdminPermissionManager.blockingEnabled = false, toolTip = "Blocks all Admin-Commands that have not been Allowed below." },
@@ -2921,8 +2913,7 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "game-clone", overlapText = "Clone GameObject", hideFromArraylist = true, hideFromEnabled = true, hideFromSearch = true, enableMethod = () => AdminPermissionManager.AddCommandToList("game-clone"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("game-clone"), toolTip = "Adds the Clone GameObject Admin-Command to the List of Allowed Commands." }
             },
 
-            new[] // Admin Video Selector [53]
-            {
+            new[] { // Admin Video Selector [53]
                 new ButtonInfo { buttonText = "Exit Admin Video Selector", method =() => CurrentCategoryName = "Admin Mods", isTogglable = false, toolTip = "Returns you back to the Admin Mods."},
 
                 new ButtonInfo { buttonText = "Loading Videos...", label = true },

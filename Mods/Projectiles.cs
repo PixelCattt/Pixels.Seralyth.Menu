@@ -1464,6 +1464,69 @@ namespace Seralyth.Mods
                 SendProjectile(GetPreferredProjectileEntry(), GorillaTagger.Instance.headCollider.transform.position + RandomVector3(), RandomVector3() * 20f);
         }
 
+        public static void ProjectileMinigun()
+        {
+            if ((rightGrab || Mouse.current.leftButton.isPressed))
+            {
+                Vector3 velocity = GetGunDirection(GorillaTagger.Instance.rightHandTransform) * ShootStrength;
+                if (Mouse.current.leftButton.isPressed)
+                {
+                    Ray ray = TPC.ScreenPointToRay(Mouse.current.position.ReadValue());
+                    Physics.Raycast(ray, out var hit, 512f, NoInvisLayerMask());
+                    velocity = hit.point - GorillaTagger.Instance.rightHandTransform.transform.position;
+                    velocity.Normalize();
+                    velocity *= ShootStrength * 2f;
+                }
+
+                SendProjectile(
+                    GetPreferredProjectileEntry(),
+                    GorillaTagger.Instance.rightHandTransform.position,
+                    velocity,
+                    CalculateProjectileColor(),
+                    SnowballSize
+                );
+            }
+        }
+
+        public static void GiveProjectileMinigun()
+        {
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun();
+                RaycastHit Ray = GunData.Ray;
+
+                if (gunLocked && lockTarget != null)
+                {
+                    Vector3 velocity = lockTarget.rightHandTransform.transform.forward * ShootStrength;
+
+                    SendProjectile(
+                        GetPreferredProjectileEntry(),
+                        lockTarget.rightHandTransform.transform.position,
+                        velocity,
+                        CalculateProjectileColor(),
+                        SnowballSize
+                    );
+                }
+                if (GetGunInput(true))
+                {
+                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
+                    if (gunTarget && !gunTarget.IsLocal())
+                    {
+                        gunLocked = true;
+                        lockTarget = gunTarget;
+                    }
+                }
+            }
+            else
+            {
+                if (gunLocked)
+                {
+                    gunLocked = false;
+                    VRRig.LocalRig.enabled = true;
+                }
+            }
+        }
+
         public static void SnowballParticleGun()
         {
             if (GetGunInput(false))

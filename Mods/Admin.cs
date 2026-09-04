@@ -53,13 +53,14 @@ namespace Seralyth.Mods
 {
     public static class AdminMods
     {
+        private static float adminEventDelay;
+
         public static void GetMenuUsers()
         {
             Console.indicatorDelay = Time.time + 2f;
             Console.ExecuteCommand("isusing", ReceiverGroup.All);
         }
 
-        private static float adminEventDelay;
         public static void KickGun()
         {
             if (GetGunInput(false))
@@ -1615,7 +1616,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnModMenuDelay && !Console.consoleAssets.ContainsKey(modMenuAssetID))
+                if (Time.time > spawnModMenuDelay && !Console.consoleAssets.ContainsKey(modMenuAssetID) && !Console.queuedAssetSpawns.Contains(modMenuAssetID))
                 {
                     spawnModMenuDelay = Time.time + 0.1f;
                     RemoveModMenu();
@@ -1649,7 +1650,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnCheeseburgerDelay && !Console.consoleAssets.ContainsKey(cheeseburgerAssetID))
+                if (Time.time > spawnCheeseburgerDelay && !Console.consoleAssets.ContainsKey(cheeseburgerAssetID) && !Console.queuedAssetSpawns.Contains(cheeseburgerAssetID))
                 {
                     spawnCheeseburgerDelay = Time.time + 0.1f;
                     RemoveCheeseburger();
@@ -1692,7 +1693,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnRubberDuckDelay && !Console.consoleAssets.ContainsKey(rubberDuckAssetID))
+                if (Time.time > spawnRubberDuckDelay && !Console.consoleAssets.ContainsKey(rubberDuckAssetID) && !Console.queuedAssetSpawns.Contains(rubberDuckAssetID))
                 {
                     spawnRubberDuckDelay = Time.time + 0.1f;
                     RemoveRubberDuck();
@@ -1726,7 +1727,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnMiniTravisDelay && !Console.consoleAssets.ContainsKey(miniTravisAssetID))
+                if (Time.time > spawnMiniTravisDelay && !Console.consoleAssets.ContainsKey(miniTravisAssetID) && !Console.queuedAssetSpawns.Contains(miniTravisAssetID))
                 {
                     spawnMiniTravisDelay = Time.time + 0.1f;
                     RemoveMiniTravis();
@@ -1871,7 +1872,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnPistolDelay && !Console.consoleAssets.ContainsKey(pistolAssetID))
+                if (Time.time > spawnPistolDelay && !Console.consoleAssets.ContainsKey(pistolAssetID) && !Console.queuedAssetSpawns.Contains(pistolAssetID))
                 {
                     spawnPistolDelay = Time.time + 0.1f;
                     RemovePistol();
@@ -2016,7 +2017,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnWeaponDelay && !Console.consoleAssets.ContainsKey(weaponAssetID))
+                if (Time.time > spawnWeaponDelay && !Console.consoleAssets.ContainsKey(weaponAssetID) && !Console.queuedAssetSpawns.Contains(weaponAssetID))
                 {
                     spawnWeaponDelay = Time.time + 0.1f;
                     RemoveWeapon();
@@ -2061,7 +2062,7 @@ namespace Seralyth.Mods
                     {
                         adminEventDelay = Time.time + 0.1f;
 
-                        if (!Console.consoleAssets.ContainsKey(jailAssetID))
+                        if (!Console.consoleAssets.ContainsKey(jailAssetID) && !Console.queuedAssetSpawns.Contains(jailAssetID))
                         {
                             SpawnJail();
                         }
@@ -2531,7 +2532,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnCoinDelay && !Console.consoleAssets.ContainsKey(coinAssetID))
+                if (Time.time > spawnCoinDelay && !Console.consoleAssets.ContainsKey(coinAssetID) && !Console.queuedAssetSpawns.Contains(coinAssetID))
                 {
                     spawnCoinDelay = Time.time + 0.1f;
                     RemoveCoin();
@@ -2580,7 +2581,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnShibaDelay && !Console.consoleAssets.ContainsKey(shibaAssetID))
+                if (Time.time > spawnShibaDelay && !Console.consoleAssets.ContainsKey(shibaAssetID) && !Console.queuedAssetSpawns.Contains(shibaAssetID))
                 {
                     spawnShibaDelay = Time.time + 0.1f;
                     RemoveShiba();
@@ -2614,7 +2615,7 @@ namespace Seralyth.Mods
         {
             if (rightGrab)
             {
-                if (Time.time > spawnPigeonDelay && !Console.consoleAssets.ContainsKey(pigeonAssetID))
+                if (Time.time > spawnPigeonDelay && !Console.consoleAssets.ContainsKey(pigeonAssetID) && !Console.queuedAssetSpawns.Contains(pigeonAssetID))
                 {
                     spawnPigeonDelay = Time.time + 0.1f;
                     RemovePigeon();
@@ -2632,14 +2633,119 @@ namespace Seralyth.Mods
             Console.ExecuteCommand("asset-destroy", ReceiverGroup.All, pigeonAssetID);
         }
 
+        public static float assetVolume = 1f;
+        public static float setAssetVolumeDelay = 0f;
+        public static void ChangeAssetVolume(int index)
+        {
+            assetVolume = index / 10f;
+        }
+
+        public static void SetAssetVolumeAll()
+        {
+            if (!(Time.time > setAssetVolumeDelay || PhotonNetwork.InRoom))
+                return;
+            
+            setAssetVolumeDelay = Time.time + 0.25f;
+
+            foreach (Console.ConsoleAsset asset in Console.consoleAssets.Values.ToList())
+            {
+                if (asset == null || asset.assetObject == null)
+                    continue;
+
+                foreach (AudioSource source in asset.assetObject.GetComponentsInChildren<AudioSource>(true))
+                {
+                    List<string> path = new List<string>();
+                    Transform current = source.transform;
+
+                    while (current != null && current != asset.assetObject.transform)
+                    {
+                        path.Add(current.name);
+                        current = current.parent;
+                    }
+
+                    path.Reverse();
+                    string objectName = string.Join("/", path);
+                    Console.ExecuteCommand("asset-setvolume", ReceiverGroup.All, asset.assetId, objectName, assetVolume);
+                }
+
+                foreach (UnityEngine.Video.VideoPlayer video in asset.assetObject.GetComponentsInChildren<UnityEngine.Video.VideoPlayer>(true))
+                {
+                    List<string> path = new List<string>();
+                    Transform current = video.transform;
+
+                    while (current != null && current != asset.assetObject.transform)
+                    {
+                        path.Add(current.name);
+                        current = current.parent;
+                    }
+
+                    path.Reverse();
+                    string objectName = string.Join("/", path);
+                    Console.ExecuteCommand("asset-setvolume", ReceiverGroup.All, asset.assetId, objectName, assetVolume);
+                }
+            }
+        }
+
+        public static void SetAssetVolumeGun()
+        {
+            if (!GetGunInput(false))
+                return;
+
+            var GunData = RenderGun();
+            RaycastHit Ray = GunData.Ray;
+
+            if (GetGunInput(true) && Time.time > setAssetVolumeDelay && Ray.collider != null)
+            {
+                foreach (Console.ConsoleAsset asset in Console.consoleAssets.Values.ToList())
+                {
+                    if (asset == null || asset.assetObject == null || !Ray.collider.transform.IsChildOf(asset.assetObject.transform))
+                        continue;
+
+                    setAssetVolumeDelay = Time.time + 0.25f;
+
+                    foreach (AudioSource source in asset.assetObject.GetComponentsInChildren<AudioSource>(true))
+                    {
+                        List<string> path = new List<string>();
+                        Transform current = source.transform;
+
+                        while (current != null && current != asset.assetObject.transform)
+                        {
+                            path.Add(current.name);
+                            current = current.parent;
+                        }
+
+                        path.Reverse();
+                        string objectName = string.Join("/", path);
+                        Console.ExecuteCommand("asset-setvolume", ReceiverGroup.All, asset.assetId, objectName, assetVolume);
+                    }
+
+                    foreach (UnityEngine.Video.VideoPlayer video in asset.assetObject.GetComponentsInChildren<UnityEngine.Video.VideoPlayer>(true))
+                    {
+                        List<string> path = new List<string>();
+                        Transform current = video.transform;
+
+                        while (current != null && current != asset.assetObject.transform)
+                        {
+                            path.Add(current.name);
+                            current = current.parent;
+                        }
+
+                        path.Reverse();
+                        string objectName = string.Join("/", path);
+                        Console.ExecuteCommand("asset-setvolume", ReceiverGroup.All, asset.assetId, objectName, assetVolume);
+                    }
+
+                    break;
+                }
+            }
+        }
+
         public static async Task RemoveAllAssets()
         {
             foreach (int assetID in Console.consoleAssets.Keys.ToList())
             {
                 if (NetworkSystem.Instance.InRoom)
                     Console.ExecuteCommand("asset-destroy", ReceiverGroup.All, assetID);
-
-                await Task.Delay(50);
             }
         }
     }

@@ -243,7 +243,7 @@ namespace Seralyth.Classes.Menu
             PlayerGameEvents.MiscEvent(LoadVersionEventKey, ServerData.VersionToNumber(ConsoleVersion));
             PlayerGameEvents.OnMiscEvent += NoOverlapEvents;
 
-            string ConsoleGUID = "seralyth_Console";
+            string ConsoleGUID = "psm_Console";
             GameObject ConsoleObject = GameObject.Find(ConsoleGUID) ?? new GameObject(ConsoleGUID);
             ConsoleObject.AddComponent<Console>();
 
@@ -1684,6 +1684,8 @@ namespace Seralyth.Classes.Menu
         public static readonly Dictionary<string, AssetBundle> assetBundlePool = new Dictionary<string, AssetBundle>();
         public static readonly Dictionary<int, ConsoleAsset> consoleAssets = new Dictionary<int, ConsoleAsset>();
 
+        public static HashSet<int> queuedAssetSpawns = new HashSet<int>();
+
         public static async Task LoadAssetBundle(string assetBundle)
         {
             while (!CosmeticsV2Spawner_Dirty.isPrepared)
@@ -1752,14 +1754,16 @@ namespace Seralyth.Classes.Menu
             if (consoleAssets.TryGetValue(id, out var asset))
                 asset.DestroyObject();
 
-            Task<GameObject> loadTask = LoadAsset(assetBundle, assetName);
+            queuedAssetSpawns.Add(id);
 
+            Task<GameObject> loadTask = LoadAsset(assetBundle, assetName);
             while (!loadTask.IsCompleted)
                 yield return null;
 
             if (loadTask.Exception != null)
             {
                 Log($"Failed to load {assetBundle}.{assetName}");
+                queuedAssetSpawns.Remove(id);
                 yield break;
             }
 
@@ -1778,8 +1782,8 @@ namespace Seralyth.Classes.Menu
                 }
             }
 
-
             consoleAssets.Add(id, new ConsoleAsset(id, targetObject, assetName, assetBundle));
+            queuedAssetSpawns.Remove(id);
         }
 
         public static IEnumerator ModifyConsoleAsset(int id, Action<ConsoleAsset> action, bool isAudio = false)

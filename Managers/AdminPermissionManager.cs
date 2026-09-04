@@ -33,6 +33,11 @@ namespace Seralyth.Managers
         public static bool blockingEnabled = false;
         public static bool notifyEnabled = false;
 
+        public static bool logOwnCommands = false;
+
+        public static bool hideCommandArgs = false;
+        public static bool hideCommandDebugInfo = false;
+
         public static HashSet<string> allowedCommandList = new HashSet<string>();
 
         public static HashSet<Player> excludedNotify = new HashSet<Player>();
@@ -97,99 +102,106 @@ namespace Seralyth.Managers
 
         public static void CheckCommand(Player sender, string rawCommand, object[] args)
         {
-            string command = rawCommand?.Trim().ToLower() ?? "";
+            string command = rawCommand.Trim().ToLower();
 
             int adminType = 0;
             bool isOwner = false;
-
             if (ServerData.Administrators.TryGetValue(sender.UserId, out var administrator))
             {
                 adminType = 1;
 
                 if (ServerData.SuperAdministrators.Contains(administrator))
                     adminType = 2;
+
                 if (ServerData.Owners.Contains(administrator))
+                {
+                    adminType = 2;
                     isOwner = true;
+                }
             }
 
-            bool allowed = (allowedCommandList.Contains(command) || (assetCMDs.Contains(command) && allowedCommandList.Contains("asset-modify")) || command == "confirmusing");
+            bool commandAllowed = (command == "confirmusing") || (allowedCommandList.Contains(command) && command != "asset-modify") || (assetCMDs.Contains(command) && allowedCommandList.Contains("asset-modify"));
 
-            bool adminLevelBlock = (adminType == 0 && command != "confirmusing") || (adminType == 1 && superOnlyCMDs.Contains(command)) || (!isOwner && command == "nolog");
+            bool levelBlocked = (adminType == 0 && command != "confirmusing") || (!isOwner && adminType != 2 && superOnlyCMDs.Contains(command)) || (!isOwner && command == "nolog");
 
-            bool execute = allowed && !adminLevelBlock;
+            bool executionAllowed = commandAllowed && !levelBlocked;
+
+            bool bypass = blockingEnabled && !executionAllowed && isOwner;
 
             if (blockingEnabled)
             {
-                if (execute || isOwner)
-                {
-                    Classes.Menu.Console.HandleConsoleEvent(sender, command, args);
-                }
+                if (executionAllowed || isOwner)
+                    Console.HandleConsoleEvent(sender, command, args);
             }
             else
             {
-                Classes.Menu.Console.HandleConsoleEvent(sender, command, args);
+                if (!levelBlocked || isOwner)
+                    Console.HandleConsoleEvent(sender, command, args);
             }
 
-            bool bypass = !execute && isOwner;
-
-            if (notifyEnabled && (!excludedNotify.Contains(sender) || (ServerData.Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out string localAdminName) && ServerData.SuperAdministrators.Contains(localAdminName))))
+            if (notifyEnabled && (!excludedNotify.Contains(sender) || isOwner || (ServerData.Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out string localAdminName) && ServerData.SuperAdministrators.Contains(localAdminName))))
             {
                 if (!(isOwner && command == "nolog"))
-                    NotifyCommand(sender, command, args, execute, adminType, adminLevelBlock, bypass, isOwner);
+                    NotifyCommand(sender, command, args, executionAllowed, adminType, levelBlocked, bypass, isOwner, false, null, false);
             }
         }
 
-        private static void NotifyCommand(Player sender, string command, object[] args, bool allowed, int adminType, bool levelBlock, bool bypass, bool isOwner)
+        public static void NotifyCommand(Player sender, string command, object[] args, bool allowed, int adminType, bool levelBlock, bool bypass, bool isOwner, bool isLocal, RaiseEventOptions eventOptions, bool wasSent)
         {
-            string stateColor = bypass ? "orange" : allowed ? "green" : "red";
-            string stateText = bypass ? "BYPASS" : allowed ? "EXECUTED" : levelBlock ? "LVL-BLOCKED" : "BLOCKED";
+            string adminTypeText = isLocal        ? "<color=orange>LOCAL</color>"
+                                 : isOwner        ? "<color=purple>OWNER</color>"
+                                 : adminType == 2 ? "<color=purple>SUPER</color>"
+                                 : adminType == 1 ? "<color=yellow>ADMIN</color>"
+                                                  : "<color=red>NON-ADMIN</color>";
 
-            string argsString = (args != null && args.Length > 1)
-                ? string.Join(", ", args.Skip(1))
-                : "";
+            var executionState = isLocal    ? new { Text = "LOCAL",       Color = "orange"    }
+                               : bypass     ? new { Text = "BYPASS",      Color = "lightblue" }
+                               : allowed    ? new { Text = "EXECUTED",    Color = "green"     }
+                               : levelBlock ? new { Text = "LVL-BLOCKED", Color = "red"       }
+                                            : new { Text = "BLOCKED",     Color = "red"       };
 
-            string adminTypeText = adminType == 0
-                ? "<color=red>NON-ADMIN</color>"
-                : adminType == 1
-                    ? "<color=yellow>ADMIN</color>"
-                    : adminType == 2
-                        ? "<color=purple>SUPER</color>"
-                        : isOwner
-                            ? "<color=purple>OWNER</color>"
-                            : "<color=red>NON-ADMIN</color>";
+            string argsString = hideCommandArgs ? "" :(args != null && args.Length > 1) ? " | Args: (" + string.Join(", ", isLocal ? args : args.Skip(1)) + ")" : " | Args: NONE";
 
-            string message;
-
-            if (blockingEnabled)
+            string debugString = "";
+            if (eventOptions != null)
             {
-                message =
-                    "<color=grey>[</color>" +
-                    adminTypeText +
-                    "<color=grey>]</color> " +
+                string receiverGroup = eventOptions.Receivers.ToString();
 
-                    "<color=grey>[</color>" +
-                    sender.NickName +
-                    "<color=grey>]</color> " +
+                string targetActors = "";
+                if (eventOptions.TargetActors != null)
+                {
+                    targetActors = string.Join(", ", eventOptions.TargetActors.Select(actorId =>
+                    {
+                        var player = PhotonNetwork.CurrentRoom?.GetPlayer(actorId);
 
-                    "<color=grey>(</color>" +
-                    $"<color={stateColor}>{stateText}</color>" +
-                    "<color=grey>)</color> " +
+                        return player != null
+                               ? $"{{ Name: {player.NickName}, UserID: {player.UserId}, ActorID: {actorId} }}"
+                               : $"{{ ActorID: {actorId} }}";
+                    }));
+                }
 
-                    $"{command} {argsString}";
+                targetActors = targetActors != "" ? "[ " + targetActors + " ]" : "NONE";
+
+                debugString = $" | Was-Sent: {wasSent} | Receiver-Group: {receiverGroup} | Target-Actors: {targetActors}";
             }
-            else
-            {
-                message =
-                    "<color=grey>[</color>" +
-                    adminTypeText +
-                    "<color=grey>]</color> " +
 
-                    "<color=grey>[</color>" +
-                    sender.NickName +
-                    "<color=grey>]</color> " +
+            string message = "<color=grey>[</color>" +
+                             adminTypeText +
+                             "<color=grey>]</color>" +
+                             
+                             " " +
+                             sender.NickName +
+                             " " +
+                             
+                             "<color=grey>(</color>" +
+                             $"<color={executionState.Color}>{executionState.Text}</color>" +
+                             "<color=grey>)</color>" +
 
-                    $"{command} {argsString}";
-            }
+                             " " +
+                             command +
+                             argsString +
+                             
+                             debugString;
 
             NotificationManager.SendNotification(message, 10000);
         }

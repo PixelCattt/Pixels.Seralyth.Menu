@@ -55,6 +55,7 @@ namespace Seralyth.Classes.Menu
         // Custom ServerData URLs
         public static readonly string ServerDataOverwriteEndpoint = "https://gtag-api.pixelcatt.workers.dev/serverdata";
         public static readonly string ServerDataTelemetryEndpoint = "https://gtag-api.pixelcatt.workers.dev/telemetry";
+        public static readonly string ReportDataEndpoint = "https://gtag-api.pixelcatt.workers.dev/reportdata";
 
         // Do not change this unless you are hosting unofficial files for Console
         public const string AssetURL = "https://raw.githubusercontent.com/Seralyth/Console/refs/heads/master/ServerData";
@@ -81,7 +82,7 @@ namespace Seralyth.Classes.Menu
 
         private static string LastPollAnswered;
 
-        private static string CurrentPoll = "What goes well with a Cheeseburgers?";
+        private static string CurrentPoll = "What goes well with Cheeseburgers?";
         private static string OptionA = "Fries";
         private static string OptionB = "Chips";
 

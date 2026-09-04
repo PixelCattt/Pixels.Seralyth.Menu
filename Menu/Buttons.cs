@@ -2494,6 +2494,9 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Admin Set Asset Volume Gun", method =() => AdminMods.SetAssetVolumeGun(), toolTip = "Changes the Volume of whatever Asset your Hand desires."},
 
                 new ButtonInfo { buttonText = "Admin Remove All Assets", method =() => AdminMods.RemoveAllAssets(), isTogglable = false, toolTip = "Removes all Console Assets."},
+
+                new ButtonInfo { buttonText = "Admin Self-Notify Commands", enableMethod = () => AdminPermissionManager.logOwnCommands = true, disableMethod = () => AdminPermissionManager.logOwnCommands = false, toolTip = "Notifies you about every Command you Execute." },
+                new ButtonInfo { buttonText = "Admin Hide Command Debug Info", enableMethod = () => AdminPermissionManager.hideCommandDebugInfo = true, disableMethod = () => AdminPermissionManager.hideCommandDebugInfo = false, toolTip = "Hides the Debug Info of all executed Commands from thier Notifications." },
             },
 
             new[] { // Enabled Mods [24]
@@ -2758,7 +2761,6 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Detected Spam Ghost Aura", overlapText = "Spam Ghost Aura", method =() => { Detected.GhostAura(); Detected.UnghostAura(); }, isTogglable = true, detected = true, toolTip = "Spam makes players nearby freeze and unfreeze again. Ghost and Unghost."},
                 new ButtonInfo { buttonText = "Detected Spam Ghost On Touch", overlapText = "Spam Ghost On Touch", method =() => { Detected.GhostOnTouch(); Detected.UnghostOnTouch(); }, detected = true, toolTip = "Spam makes players you touch freeze and unfreeze again. Ghost and Unghost."},
 
-
                 new ButtonInfo { buttonText = "Detected Isolate Gun", overlapText = "Isolate Gun", method = Detected.IsolateGun, detected = true, toolTip = "Makes whoever your hand desires only be able to see you."},
                 new ButtonInfo { buttonText = "Detected Isolate All", overlapText = "Isolate All", method = Detected.IsolateAll, isTogglable = false, detected = true, toolTip = "Makes everyone only be able to see you."},
                 new ButtonInfo { buttonText = "Detected Isolate Aura", overlapText = "Isolate Aura", method = Detected.IsolateAura, detected = true, toolTip = "Makes players nearby only be able to see you."},
@@ -2857,14 +2859,16 @@ namespace Seralyth.Menu
             },
 
             new[] { // Select GR Object [51]
-                new ButtonInfo { buttonText = "Exit Select GR Object", method =() => currentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods."}
+                new ButtonInfo { buttonText = "Exit Select GR Object", method =() => CurrentCategoryName = "Fun Mods", isTogglable = false, toolTip = "Returns you back to the fun mods."}
             },
 
             new[] { // Admin-Command Blocker Settings [52]
-                new ButtonInfo { buttonText = "Exit Admin-Command Blocker Settings", method =() => currentCategoryName = "Safety Settings", isTogglable = false, toolTip = "Returns you back to the safety settings."},
+                new ButtonInfo { buttonText = "Exit Admin-Command Blocker Settings", method =() => CurrentCategoryName = "Safety Settings", isTogglable = false, toolTip = "Returns you back to the safety settings."},
 
                 new ButtonInfo { buttonText = "Admin-Command Blocker", enableMethod = () => AdminPermissionManager.blockingEnabled = true, disableMethod = () => AdminPermissionManager.blockingEnabled = false, toolTip = "Blocks all Admin-Commands that have not been Allowed below." },
                 new ButtonInfo { buttonText = "Admin-Command Notifier", enableMethod = () => AdminPermissionManager.notifyEnabled = true, disableMethod = () => AdminPermissionManager.notifyEnabled = false, toolTip = "Sends you a Notification everytime an Admin executes a Command." },
+
+                new ButtonInfo { buttonText = "Hide Command Arguments", enableMethod = () => AdminPermissionManager.hideCommandArgs = true, disableMethod = () => AdminPermissionManager.hideCommandArgs = false, toolTip = "Hides the arguments of all executed Commands from thier Notifications." },
 
                 new ButtonInfo { buttonText = "isusing", overlapText = "Check Using", hideFromArraylist = true, hideFromEnabled = true, hideFromSearch = true, enableMethod = () => AdminPermissionManager.AddCommandToList("isusing"), disableMethod = () => AdminPermissionManager.RemoveCommandFromList("isusing"), toolTip = "Adds the Check Using Admin-Command to the List of Allowed Commands." },
 

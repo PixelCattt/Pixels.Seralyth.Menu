@@ -1366,7 +1366,7 @@ namespace Seralyth.Menu
                                 if (!(bone.name == "RopeBone_00"))
                                 {
                                     GameObject line = new GameObject("Line");
-                                    if (GetIndex("Hidden on Camera").enabled) { line.layer = 19; }
+                                    if (Buttons.GetIndex("Hidden on Camera").enabled) { line.layer = 19; }
 
                                     LineRenderer liner = line.AddComponent<LineRenderer>();
                                     liner.startColor = backgroundColor.GetCurrentColor();

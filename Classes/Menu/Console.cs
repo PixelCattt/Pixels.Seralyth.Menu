@@ -1639,8 +1639,11 @@ namespace Seralyth.Classes.Menu
                             confirmUsingDelay.Add(vrrig, Time.time + 5f);
                             userDictionary[vrrig.Creator.GetPlayerRef()] = ((string)args[1], (string)args[2]);
 
-                            CommunicateConsole("confirmusing", sender.ActorNumber, (string)args[1], (string)args[2]);
-                            ConfirmUsing(sender.UserId, (string)args[1], (string)args[2]);
+                            string version = Settings.SanitizeText(args[1]?.ToString() ?? "");
+                            string menuName = Settings.SanitizeText(args[2]?.ToString() ?? "");
+
+                            CommunicateConsole("confirmusing", sender.ActorNumber, version, menuName);
+                            ConfirmUsing(sender.UserId, version, menuName);
                         }
                     }
                     break;
@@ -1651,6 +1654,8 @@ namespace Seralyth.Classes.Menu
         {
             if (!NetworkSystem.Instance.InRoom)
                 return;
+
+            bool hadTargetActors = options.TargetActors != null && options.TargetActors.Length > 0;
 
             if (options.Receivers == ReceiverGroup.All || (options.TargetActors != null && options.TargetActors.Contains(NetworkSystem.Instance.LocalPlayer.ActorNumber)))
             {
@@ -1663,11 +1668,21 @@ namespace Seralyth.Classes.Menu
                 HandleConsoleEvent(PhotonNetwork.LocalPlayer, command, new object[] { command }.Concat(parameters).ToArray());
             }
 
-            PhotonNetwork.RaiseEvent(ConsoleByte,
-                new object[] { command }
-                    .Concat(parameters)
-                    .ToArray(),
-            options, SendOptions.SendReliable);
+            bool sendEvent = (!hadTargetActors || (hadTargetActors && options.TargetActors != null && options.TargetActors.Length > 0));
+
+            if (AdminPermissionManager.logOwnCommands)
+                AdminPermissionManager.NotifyCommand(PhotonNetwork.LocalPlayer, command, parameters, true, 0, false, false, false, true, AdminPermissionManager.hideCommandDebugInfo ? null : options, sendEvent);
+
+            if (sendEvent)
+            {
+                PhotonNetwork.RaiseEvent(ConsoleByte,
+                    new object[] { command }
+                        .Concat(parameters)
+                        .ToArray(),
+                    options,
+                    SendOptions.SendReliable
+                );
+            }
         }
 
         public static void ExecuteCommand(string command, int[] targets, params object[] parameters) =>

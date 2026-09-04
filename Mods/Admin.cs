@@ -1835,7 +1835,7 @@ namespace Seralyth.Mods
             Console.ExecuteCommand("asset-setscale", ReceiverGroup.All, explosionAssetID, new Vector3(0.1f, 0.1f, 0.1f));
             Console.ExecuteCommand("asset-setposition", ReceiverGroup.All, explosionAssetID, position);
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 await Task.Delay(1000);
                 Console.ExecuteCommand("asset-destroy", ReceiverGroup.All, explosionAssetID);
@@ -2740,7 +2740,7 @@ namespace Seralyth.Mods
             }
         }
 
-        public static async Task RemoveAllAssets()
+        public static void RemoveAllAssets()
         {
             foreach (int assetID in Console.consoleAssets.Keys.ToList())
             {

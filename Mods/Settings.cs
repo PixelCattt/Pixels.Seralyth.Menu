@@ -36,6 +36,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -201,7 +202,7 @@ namespace Seralyth.Mods
             for (int index = 0; index < defaultbuttons.Length; index++)
                 Toggle(defaultbuttons[index]);
 
-            SavePreferences();
+            Preferences.Save();
         }
 
         public static void GlobalReturn()
@@ -3652,6 +3653,17 @@ namespace Seralyth.Mods
         {
             fontCycle--;
             Buttons.GetIndex("Change Font Type").cycleValue(true);
+        }
+
+        public static string SanitizeText(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return "";
+
+            input = Regex.Replace(input, @"<[^>]*>", "");
+            input = new string(input.Where(c => !char.IsControl(c)).ToArray());
+
+            return input;
         }
 
         public static void ApplyPageType(int index) { pageButtonType = index; buttonOffset = index == 2 ? 2 : 0; }

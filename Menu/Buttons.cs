@@ -208,9 +208,14 @@ namespace Seralyth.Menu
                 new ButtonInfo { buttonText = "Vibrant Text Colors", enableMethod =() => vibrantColors = true, disableMethod =() => vibrantColors = false, toolTip = "Makes certain green and purple colors more vibrant.", legal = true},
                 ButtonHelper.CreateNumeric("Change PC Menu Background", 0, 5, pcbg, Settings.ApplyPCUI, toolTip: "Changes the background of the PC ui.", legal: true),
                 ButtonHelper.CreateNumeric("Change Joystick Menu Position", 0, joystickMenuPositions.Length - 1, joystickMenuPosition, Settings.ApplyJoystickMenuPosition, toolTip: "Changes the position of the joystick menu.", legal: true),
+
+                ButtonHelper.CreateNumeric("Change Notification Padding", -5, 20, 0, NotificationManager.ApplyNotificationPadding, v => (v * 0.1f).ToString(), "Changes the Distance from the Edge of the Screen where Notifications are Displayed.", legal: true),
+                ButtonHelper.CreateNumeric("Change Notification Height", -10, 10, 0, NotificationManager.ApplyNotificationHeight, v => (v * 0.1f).ToString(), "Changes the Height where Notifications are Displayed.", legal: true),
                 ButtonHelper.CreateNumeric("Change Notification Time", 0, 5, notificationDecayTime / 1000, Settings.ApplyNotificationTime, v => v.ToString(), "Changes the time before a notification is removed.", legal: true),
+
                 ButtonHelper.Create("Change Notification Sound", () => SoundManager.Sounds["Notifications"].Keys.ToArray(), 0, v => Settings.ApplyNotificationSound(SoundManager.Sounds["Notifications"].Keys.ToArray()[v]), toolTip: "Changes the sound that plays when receiving a notification.", legal: true, onCycle: _ => { var src = audioManager?.GetComponent<AudioSource>(); src?.Stop(); SoundManager.Play(SoundManager.DefaultSounds["Notification"]); }),
                 new ButtonInfo { buttonText = "Notification Sound on Error", enableMethod =() => NotificationManager.soundOnError = true, disableMethod =() => NotificationManager.soundOnError = false, toolTip = "Plays your target notification sound when an error happens.", legal = true},
+                
                 ButtonHelper.Create("Change Narration Voice", () => Settings.NarratorNames, narratorIndex, Settings.ApplyNarrationVoice, "Changes the voice of the narrator.", legal: true),
                 ButtonHelper.CreateNumeric("Change Pointer Position", 0, Settings.PointerPositions.Length - 1, pointerIndex, Settings.ApplyPointerPosition, toolTip: "Changes the position of the pointer.", legal: true),
 

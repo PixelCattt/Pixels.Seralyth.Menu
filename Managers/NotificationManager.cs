@@ -53,6 +53,9 @@ namespace Seralyth.Managers
         public static TextMeshProUGUI arraylistText;
         public static TextMeshProUGUI informationText;
 
+        public static float notificationPadding;
+        public static float notificationHeight;
+
         private bool hasInitialized;
         public static bool noRichText;
         public static bool soundOnError;
@@ -138,6 +141,16 @@ namespace Seralyth.Managers
             return text;
         }
 
+        public static void ApplyNotificationPadding(int index)
+        {
+            notificationPadding = index * 0.1f;
+        }
+
+        public static void ApplyNotificationHeight(int index)
+        {
+            notificationHeight = index * 0.1f;
+        }
+
         private float updateArraylistTimer;
         private void FixedUpdate()
         {
@@ -167,7 +180,7 @@ namespace Seralyth.Managers
                     notificationText.SafeSetFont(activeFont);
                     notificationText.SafeSetFontStyle(activeFontStyle);
                     notificationText.SafeSetFontSize(notificationScale);
-                    notificationText.rectTransform.localPosition = new Vector3(-1f, disableNotifications ? -100f : -1f, -0.5f);
+                    notificationText.rectTransform.localPosition = new Vector3(-1f, disableNotifications ? -100f : -1f + notificationHeight, -0.5f + notificationPadding);
                     notificationText.Chams();
 
                     informationText.SafeSetFont(activeFont);

@@ -104,8 +104,13 @@ namespace Seralyth.Menu
             new[] { // Menu Settings [2]
                 new ButtonInfo { buttonText = "Exit Menu Settings", method =() => CurrentCategoryName = "Settings", isTogglable = false, toolTip = "Returns you back to the settings menu.", legal = true},
 
-                new ButtonInfo { buttonText = "Hide GUI on PC", enableMethod = UI.Instance.DisableGUI, disableMethod = UI.Instance.EnableGUI, toolTip = "Hides the GUI on the PC Screen.", legal = true},
-                new ButtonInfo { buttonText = "Only Room Code on PC", enableMethod = UI.Instance.EnableOnlyCodeGUI, disableMethod = UI.Instance.DisableOnlyCodeGUI, toolTip = "Only shows the Room Code on the PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Hide PC GUI", enableMethod =() => UI.Instance.isOpen = false, disableMethod =() => UI.Instance.isOpen = true, toolTip = "Hides the GUI from your PC Screen.", legal = true},
+
+                new ButtonInfo { buttonText = "Hide Arraylist from PC GUI", enableMethod =() => UI.Instance.hideArrayList = true, disableMethod =() => UI.Instance.hideArrayList = false, toolTip = "Hides the Arraylist from the GUI on your PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Hide Room Code from PC GUI", enableMethod =() => UI.Instance.hideRoomCode = true, disableMethod =() => UI.Instance.hideRoomCode = false, toolTip = "Hides the Room Code from the GUI on your PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Hide Notifications from PC GUI", enableMethod =() => UI.Instance.hideNotifications = true, disableMethod =() => UI.Instance.hideNotifications = false, toolTip = "Hides the Notifications from the GUI on your PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Hide Controls from PC GUI", enableMethod =() => UI.Instance.hideControls = true, disableMethod =() => UI.Instance.hideControls = false, toolTip = "Hides the Controls from the GUI on your PC Screen.", legal = true},
+                new ButtonInfo { buttonText = "Hide Menu Infos from PC GUI", enableMethod =() => UI.Instance.hideMenuInfos = true, disableMethod =() => UI.Instance.hideMenuInfos = false, toolTip = "Hides the Menu Infos from the GUI on your PC Screen.", legal = true},
 
                 new ButtonInfo { buttonText = "Right Hand", enableMethod = Settings.RightHand, disableMethod = Settings.LeftHand, toolTip = "Puts the menu on your right hand.", legal = true},
                 new ButtonInfo { buttonText = "Both Hands", enableMethod =() => bothHands = true, disableMethod =() => bothHands = false, toolTip = "Puts the menu on your both of your hands.", legal = true},
@@ -263,7 +268,6 @@ namespace Seralyth.Menu
                 ),
 
                 new ButtonInfo { buttonText = "Clear Notifications on Disconnect", enableMethod =() => clearNotificationsOnDisconnect = true, disableMethod =() => clearNotificationsOnDisconnect = false, toolTip = "Clears all notifications on disconnect.", legal = true},
-                new ButtonInfo { buttonText = "Hide Notifications on Camera", overlapText = "Streamer Mode Notifications", toolTip = "Makes notifications only render in VR.", legal = true},
                 new ButtonInfo { buttonText = "Stack Notifications", enableMethod =() => stackNotifications = true, disableMethod =() => stackNotifications = false, toolTip = "Stacks repeated notifications into one notification.", legal = true},
                 new ButtonInfo { buttonText = "Narrate Notifications", enableMethod =() => NotificationManager.narrateNotifications = true, disableMethod =() => NotificationManager.narrateNotifications = false, toolTip = "Narrates all notifications with text to speech.", legal = true},
                 new ButtonInfo { buttonText = "No Prefix Narration", enableMethod =() => NotificationManager.noPrefix = true, disableMethod =() => NotificationManager.noPrefix = false, toolTip = "Stops the prefix on notifications from narrating itself.", legal = true},

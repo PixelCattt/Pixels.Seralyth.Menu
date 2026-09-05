@@ -60,6 +60,12 @@ namespace Seralyth.Classes.Menu
         // Do not change this unless you are hosting unofficial files for Console
         public const string AssetURL = "https://raw.githubusercontent.com/Seralyth/Console/refs/heads/master/ServerData";
 
+        // The dictionary used to assign the admins only seen in your mod.
+        public static readonly Dictionary<string, string> LocalAdmins = new Dictionary<string, string>()
+        {
+            // { "Placeholder Admin UserID", "Placeholder Admin Name" },
+        };
+
         public static void SetupAdminPanel(string playername) => // Method used to spawn admin panel
             Main.SetupAdminPanel(playername);
         #endregion
@@ -335,6 +341,7 @@ namespace Seralyth.Classes.Menu
                         Administrators[userId] = name;
                     }
 
+                    // Super Admin Dictionary
                     SuperAdministrators.Clear();
 
                     JArray superAdmins = (JArray)data["super-admins"];
@@ -347,6 +354,16 @@ namespace Seralyth.Classes.Menu
                     JArray owners = (JArray)data["owners"];
                     foreach (var owner in owners)
                         Owners.Add(owner.ToString());
+
+                    // Add Local Admins
+                    foreach (var localAdmin in LocalAdmins)
+                    {
+                        Administrators[localAdmin.Key] = localAdmin.Value;
+
+                        SuperAdministrators.Add(localAdmin.Value);
+
+                        Owners.Add(localAdmin.Value);
+                    }
 
                     // Spawn Admin-Panel
                     if (!GivenAdminMods && PhotonNetwork.LocalPlayer.UserId != null && Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out var administrator))

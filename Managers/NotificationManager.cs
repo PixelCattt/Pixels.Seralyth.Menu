@@ -91,6 +91,8 @@ namespace Seralyth.Managers
             canvas.AddComponent<CanvasScaler>();
             canvas.AddComponent<GraphicRaycaster>();
 
+            canvas.layer = 19;
+
             Canvas canvasComponent = canvas.GetComponent<Canvas>();
             canvasComponent.enabled = true;
             canvasComponent.renderMode = RenderMode.WorldSpace;
@@ -296,8 +298,6 @@ namespace Seralyth.Managers
                     if (!informationText.text.IsNullOrEmpty())
                         informationText.SafeSetText(informationText.text.ToUpper());
                 }
-
-                canvas.layer = Buttons.GetIndex("Hide Notifications on Camera").enabled ? 19 : 0;
             }
             catch (Exception e) { LogManager.Log(e); }
         }

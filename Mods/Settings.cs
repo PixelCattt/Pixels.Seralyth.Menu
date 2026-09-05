@@ -3660,7 +3660,7 @@ namespace Seralyth.Mods
             if (string.IsNullOrEmpty(input))
                 return "";
 
-            input = Regex.Replace(input, @"<[^>]*>", "");
+            input = NoRichtextTags(input);
             input = new string(input.Where(c => !char.IsControl(c)).ToArray());
 
             return input;

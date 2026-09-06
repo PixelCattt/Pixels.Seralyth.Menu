@@ -26,7 +26,6 @@ using Seralyth.Extensions;
 using Seralyth.Managers;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -66,9 +65,13 @@ namespace Seralyth.Menu
 
             debugUI = canvas.Find("DebugUI")?.gameObject;
             if (debugUI != null)
+            {
+                debugUI.transform.Find("TextInput").gameObject.GetComponent<TMP_InputField>().richText = false;
                 debugUI.AddComponent<UIDragWindow>();
+            }
 
             templateLine = debugUI?.transform.Find("Lines/Line")?.gameObject;
+            templateLine.SetActive(false);
 
             r = canvas.Find("ControlUI/R")?.GetComponent<TMP_InputField>();
             g = canvas.Find("ControlUI/G")?.GetComponent<TMP_InputField>();
@@ -139,6 +142,17 @@ namespace Seralyth.Menu
                 debugUI?.transform.Find("TextInput")?.GetComponent<Image>(),
                 debugUI?.transform.Find("Lines")?.GetComponent<Image>()
             }.Where(imageObject => imageObject != null).ToList();
+
+            List<TMP_InputField> inputObjects = new List<TMP_InputField>
+            {
+                canvas.Find("ControlUI/TextInput")?.GetComponent<TMP_InputField>(),
+                canvas.Find("ControlUI/R")?.GetComponent<TMP_InputField>(),
+                canvas.Find("ControlUI/G")?.GetComponent<TMP_InputField>(),
+                canvas.Find("ControlUI/B")?.GetComponent<TMP_InputField>()
+            }.Where(inputObject => inputObject != null).ToList();
+
+            foreach (var input in inputObjects)
+                input.richText = false;
 
             if (watermark != null)
                 watermark.material = new Material(watermark.material);
@@ -492,7 +506,7 @@ namespace Seralyth.Menu
             else
             {
                 uiPrefab.SetActive(false);
-        }
+            }
         }
 
         private void CreateNotifications(Transform canvas)
@@ -571,64 +585,190 @@ namespace Seralyth.Menu
                 Destroy(lines.GetChild(1).gameObject);
         }
 
-        public void HandleDebugCommand(string command)
+        public void HandleDebugCommand(string input)
         {
-            if (string.IsNullOrWhiteSpace(command))
+            if (string.IsNullOrWhiteSpace(input))
                 return;
 
-            string[] args = command.Split(' ');
-            string commandName = args[0].ToLower();
+            string[] inputParts = input.Split(' ');
 
-            switch (commandName)
+            string command = inputParts[0].ToLower();
+            string[] args = inputParts.Skip(1).ToArray();
+
+            switch (command)
             {
+                case "help":
+                    {
+                        DebugPrint("--- DEBUG COMMAND LIST ---");
+                        DebugPrint("help - Shows this list of Commands");
+                        DebugPrint("print <text> - Prints Text to the Debug Console");
+                        DebugPrint("admin [<name> <userid>] - Adds Local Admins");
+                        DebugPrint("prompt *[*<promptText>*]* [*[*<promptAcceptText>*]* *[*<promptDeclineText>*]*] - Displays Prompts");
+                        DebugPrint("notify <(text|random)> <amount> [<text>] - Sends Notifications");
+                        DebugPrint("userinfo - Prints your Name, UserID and ActorID");
+                        DebugPrint("beta <(true|false)> - Sets the Beta-Build Flag");
+                        DebugPrint("exit - Closes the Debug Console");
+                        DebugPrint("quit - Quits Gorilla Tag");
+                        DebugPrint("--------------------------");
+                        DebugPrint("Optional: [] | Argument: <> | Choice: () | Literal: **");
+                        DebugPrint("--------------------------");
+
+                        break;
+                    }
                 case "print":
                     {
-                        DebugPrint(args.Skip(1).Join(" "));
+                        if (args.Length < 1)
+                        {
+                            DebugPrint("Usage: 'print <text>'");
+                            break;
+                        }
+
+                        DebugPrint(args.Join(" "));
                         break;
                     }
                 case "admin":
                     {
-                        string id = args.Length > 1 ? args[1] : PhotonNetwork.LocalPlayer?.UserId;
-                        string name = args.Length > 2 ? args[2] : PhotonNetwork.LocalPlayer?.NickName;
+                        if (args.Length == 1)
+                        {
+                            DebugPrint("Usage: 'admin [<name> <userid>]'");
+                            break;
+                        }
 
-                        if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(name))
+                        string name = args.Length >= 2 ? args[0] : PhotonNetwork.LocalPlayer?.NickName;
+                        string id = args.Length >= 2 ? args[1] : PhotonNetwork.LocalPlayer?.UserId;
+
+                        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(id))
                         {
                             ServerData.LocalAdmins.Add(id, name);
-                            DebugPrint($"Added ({id}, {name}) to local administrators");
+                            ServerData.LoadServerData();
+
+                            DebugPrint($"Added '{name}' with ID '{id}' as a Local Admin!");
                         }
 
                         break;
                     }
-                case "beta":
-                    {
-                        PluginInfo.BetaBuild = args.Length > 1 && args[1].ToLower() == "true";
-                        DebugPrint($"PluginInfo.BetaBuild is now {PluginInfo.BetaBuild}");
-                        break;
-                    }
                 case "prompt":
                     {
-                        MatchCollection matches = Regex.Matches(args.Skip(1).Join(" "), @"\[(.*?)\]");
-                        List<string> results = matches.Select(matches => matches.Groups).SelectMany(group => group).Select(group => group.Value).ToList();
+                        string[] promptArgs = Regex.Matches(args.Join(" "), @"\[(.*?)\]")
+                            .Cast<Match>()
+                            .Select(match => match.Groups[1].Value)
+                            .ToArray();
 
-                        string promptText = results.Count > 1 ? results[1] : args.Length > 1 ? args[1] : "Prompt text";
-                        string acceptText = results.Count > 3 ? results[3] : args.Length > 2 ? args[2] : "Accept";
-                        string declineText = results.Count > 5 ? results[5] : args.Length > 3 ? args[3] : "Decline";
+                        if (promptArgs.Length < 1 || promptArgs[0].IsNullOrWhiteSpace() || promptArgs.Length == 2 || (promptArgs.Length > 2 && (promptArgs[1].IsNullOrWhiteSpace() || promptArgs[2].IsNullOrWhiteSpace())))
+                        {
+                            DebugPrint("Usage: 'prompt *[*<promptText>*]* [*[*<promptAcceptText>*]* *[*<promptDeclineText>*]*]'");
+                            break;
+                        }
 
-                        Prompt(promptText, () => DebugPrint("Prompt accepted"), () => DebugPrint("Prompt declined"), acceptText, declineText);
-                        DebugPrint($"Prompted user {promptText} {acceptText} {declineText}");
+                        string promptText = promptArgs[0];
+                        string promptAcceptText = promptArgs.Length > 2 ? promptArgs[1] : "Accept";
+                        string promptDeclineText = promptArgs.Length > 2 ? promptArgs[2] : "Decline";
 
+                        Prompt(promptText, () => DebugPrint($"Prompt '{promptText}' Accepted!"), () => DebugPrint($"Prompt '{promptText}' Declined!"), promptAcceptText, promptDeclineText);
+
+                        DebugPrint($"Prompt '{promptText}' has been Created!");
+                        break;
+                    }
+                case "notify":
+                    {
+                        if (args.Length < 2)
+                        {
+                            DebugPrint("Usage: 'notify <text|random> <amount> [text]'");
+                            break;
+                        }
+
+                        string typeName = args[0].ToLower();
+
+                        if (!int.TryParse(args[1], out int amount) || amount <= 0)
+                        {
+                            DebugPrint("Usage: 'notify <text|random> <amount> [text]'");
+                            break;
+                        }
+
+                        if (typeName != "text" && typeName != "random")
+                        {
+                            DebugPrint("Usage: 'notify <text|random> <amount> [text]'");
+                            break;
+                        }
+                        if (typeName == "text")
+                        {
+                            string text = args.Skip(2).Join(" ");
+
+                            if (string.IsNullOrWhiteSpace(text))
+                            {
+                                DebugPrint("Usage: 'notify <text|random> <amount> [text]'");
+                                break;
+                            }
+
+                            for (int i = 0; i < amount; i++)
+                                NotificationManager.SendNotification(text);
+
+                            DebugPrint(amount.ToString() + " Notifications have been Sent!");
+                            break;
+                        }
+                        if (typeName == "random")
+                        {
+                            const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+                            for (int i = 0; i < amount; i++)
+                            {
+                                string text = new string(
+                                    Enumerable.Range(0, 10)
+                                        .Select(_ => chars[UnityEngine.Random.Range(0, chars.Length)])
+                                        .ToArray()
+                                );
+
+                                NotificationManager.SendNotification(text);
+                            }
+
+                            DebugPrint(amount.ToString() + " Notifications have been Sent!");
+                            break;
+                        }
+
+                        break;
+                    }
+                case "userinfo":
+                    {
+                        DebugPrint($"User '{PhotonNetwork.LocalPlayer.NickName}' has UserID '{PhotonNetwork.LocalPlayer.UserId}' and ActorID: '{PhotonNetwork.LocalPlayer.ActorNumber}'");
+                        break;
+                    }
+                case "beta":
+                    {
+                        if (args.Length < 1)
+                        {
+                            DebugPrint("Usage: 'beta <(true|false)>'");
+                            break;
+                        }
+
+                        if (args[0].ToLower() != "true" && args[0].ToLower() != "false")
+                        {
+                            DebugPrint("Usage: 'beta <(true|false)>'");
+                            break;
+                        }
+
+                        PluginInfo.BetaBuild = args[0].ToLower() == "true";
+
+                        DebugPrint($"Flag BetaBuild has been set to {PluginInfo.BetaBuild}!");
                         break;
                     }
                 case "exit":
-                case "quit":
-                case "close":
                     {
+                        DebugPrint("Closing Debug Console...");
+
+                        ToggleDebug();
+                        break;
+                    }
+                case "quit":
+                    {
+                        DebugPrint("Closing Gorilla Tag...");
+
                         Application.Quit();
                         break;
                     }
+
                 default:
                     {
-                        DebugPrint($"Unknown command: '{commandName}'");
+                        DebugPrint($"Unknown Command: '{command}' Type 'help' for a list of Commands!");
                         break;
                     }
             }

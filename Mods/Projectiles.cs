@@ -1809,7 +1809,7 @@ namespace Seralyth.Mods
         {
             foreach (VRRig rig in ActiveRigs)
             {
-                if (rightTriggerPressed)
+                if (rightTrigger > 0.5f)
                     FlingPlayer(rig);
             }
         }
@@ -1844,7 +1844,7 @@ namespace Seralyth.Mods
         {
             foreach (VRRig rig in ActiveRigs)
             {
-                if (rightTriggerPressed)
+                if (rightTrigger > 0.5f)
                     SendProjectile(GetGrowingSnowballProjectileEntry(), rig.transform.position + new Vector3(0f, -0.7f, 0f), new Vector3(0f, -500f, 0f));
             }
 

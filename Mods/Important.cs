@@ -1032,26 +1032,26 @@ exit";
 
         public static void PCControllerEmulation()
         {
-            ControllerInputPoller.instance.rightControllerPrimaryButton |= UnityInput.GetKey(Key.E);
-            ControllerInputPoller.instance.rightControllerSecondaryButton |= UnityInput.GetKey(Key.R);
+            if (UnityInput.IsTyping() || inTextInput)
+                return;
 
-            ControllerInputPoller.instance.leftControllerPrimaryButton |= UnityInput.GetKey(Key.F);
-            ControllerInputPoller.instance.leftControllerSecondaryButton |= UnityInput.GetKey(Key.G);
+            ControllerInputPoller.instance.leftControllerPrimaryButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftPrimaryButton]);
+            ControllerInputPoller.instance.leftControllerSecondaryButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftSecondaryButton]);
 
-            ControllerInputPoller.instance.leftGrab |= UnityInput.GetKey(Key.LeftBracket);
-            ControllerInputPoller.instance.leftControllerGripFloat += UnityInput.GetKey(Key.LeftBracket) ? 1f : 0f;
+            ControllerInputPoller.instance.rightControllerPrimaryButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightPrimaryButton]);
+            ControllerInputPoller.instance.rightControllerSecondaryButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightSecondaryButton]);
 
-            ControllerInputPoller.instance.rightGrab |= UnityInput.GetKey(Key.RightBracket);
-            ControllerInputPoller.instance.rightControllerGripFloat += UnityInput.GetKey(Key.RightBracket) ? 1f : 0f;
+            ControllerInputPoller.instance.leftControllerTriggerButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftTrigger]);
+            ControllerInputPoller.instance.leftControllerIndexFloat += UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftTrigger]) ? 1f : 0f;
 
-            ControllerInputPoller.instance.rightControllerTriggerButton |= UnityInput.GetKey(Key.Equals);
-            ControllerInputPoller.instance.rightControllerIndexFloat += UnityInput.GetKey(Key.Equals) ? 1f : 0f;
+            ControllerInputPoller.instance.rightControllerTriggerButton |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightTrigger]);
+            ControllerInputPoller.instance.rightControllerIndexFloat += UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightTrigger]) ? 1f : 0f;
 
-            ControllerInputPoller.instance.leftControllerTriggerButton |= UnityInput.GetKey(Key.Minus);
-            ControllerInputPoller.instance.leftControllerIndexFloat += UnityInput.GetKey(Key.Minus) ? 1f : 0f;
+            ControllerInputPoller.instance.leftGrab |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftGrip]);
+            ControllerInputPoller.instance.leftControllerGripFloat += UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftGrip]) ? 1f : 0f;
 
-            ControllerInputPoller.instance.rightControllerTriggerButton |= UnityInput.GetKey(Key.Equals);
-            ControllerInputPoller.instance.rightControllerIndexFloat += UnityInput.GetKey(Key.Equals) ? 1f : 0f;
+            ControllerInputPoller.instance.rightGrab |= UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightGrip]);
+            ControllerInputPoller.instance.rightControllerGripFloat += UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightGrip]) ? 1f : 0f;
         }
 
         // Credits to Zlothy29IQ on GitHub. I saw he made it first and just took it. Thanks. Thanks. Thanks. Thanks

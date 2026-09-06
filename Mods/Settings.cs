@@ -5590,21 +5590,21 @@ namespace Seralyth.Mods
             LeftSecondaryButton,
             RightSecondaryButton,
             JoystickClick,
-            LeftOverride
+            RightJoystickOverride
         }
 
         public static readonly Dictionary<ControllerBinding, Key> pcBindings = new Dictionary<ControllerBinding, Key>
         {
-            { ControllerBinding.RightPrimaryButton, Key.E },
-            { ControllerBinding.RightSecondaryButton, Key.R },
-            { ControllerBinding.LeftPrimaryButton, Key.F },
-            { ControllerBinding.LeftSecondaryButton, Key.G },
-            { ControllerBinding.LeftGrip, Key.LeftBracket },
-            { ControllerBinding.RightGrip, Key.RightBracket },
-            { ControllerBinding.LeftTrigger, Key.Minus },
-            { ControllerBinding.RightTrigger, Key.Equals },
-            { ControllerBinding.JoystickClick, Key.Enter },
-            { ControllerBinding.LeftOverride, Key.LeftAlt }
+            { ControllerBinding.LeftPrimaryButton,     Key.F1 },
+            { ControllerBinding.LeftSecondaryButton,   Key.F2 },
+            { ControllerBinding.RightPrimaryButton,    Key.F3 },
+            { ControllerBinding.RightSecondaryButton,  Key.F4 },
+            { ControllerBinding.LeftTrigger,           Key.F5 },
+            { ControllerBinding.RightTrigger,          Key.F6 },
+            { ControllerBinding.LeftGrip,              Key.F7 },
+            { ControllerBinding.RightGrip,             Key.F8 },
+            { ControllerBinding.JoystickClick,         Key.Enter },
+            { ControllerBinding.RightJoystickOverride, Key.LeftAlt }
         };
 
         public static void LoadPCControls()

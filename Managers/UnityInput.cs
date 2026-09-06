@@ -19,13 +19,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Seralyth.Managers
 {
     internal static class UnityInput
     {
+        // Typing Check
+        internal static bool IsTyping()
+        {
+            GameObject selected = EventSystem.current?.currentSelectedGameObject;
+
+            if (selected == null)
+                return false;
+
+            return selected.GetComponent<TMP_InputField>() != null || selected.GetComponent<InputField>() != null;
+        }
+
         // Keyboard (KeyCode)
         internal static bool GetKey(Key key) => Keyboard.current[key].isPressed;
         internal static bool GetKeyDown(Key key) => Keyboard.current[key].wasPressedThisFrame;

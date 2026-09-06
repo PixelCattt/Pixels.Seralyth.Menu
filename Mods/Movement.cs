@@ -496,7 +496,6 @@ namespace Seralyth.Mods
             bool Space = UnityInput.GetKey(Key.Space);
             bool Ctrl = UnityInput.GetKey(Key.LeftCtrl);
             bool Shift = UnityInput.GetKey(Key.LeftShift);
-            bool Alt = UnityInput.GetKey(Key.LeftAlt);
 
             bool LeftArrow = UnityInput.GetKey(Key.LeftArrow);
             bool RightArrow = UnityInput.GetKey(Key.RightArrow);
@@ -505,6 +504,12 @@ namespace Seralyth.Mods
 
             if (stationary || W || A || S || D || Space || Ctrl)
                 GorillaTagger.Instance.rigidbody.linearVelocity = Vector3.zero;
+
+            if (!W && !A && !S && !D && !Space && !Ctrl && stationary && lastPosition != Vector3.zero)
+                GorillaTagger.Instance.rigidbody.transform.position = lastPosition;
+
+            if (UnityInput.IsTyping() || inTextInput)
+                return;
 
             if (!menu)
             {
@@ -554,8 +559,6 @@ namespace Seralyth.Mods
                 float speed = FlySpeed;
                 if (Shift)
                     speed *= 2f;
-                else if (Alt)
-                    speed /= 2;
 
                 if (W)
                     GorillaTagger.Instance.rigidbody.transform.position += GTPlayer.Instance.GetControllerTransform(false).parent.forward * (Time.deltaTime * speed);
@@ -578,10 +581,7 @@ namespace Seralyth.Mods
                 VRRig.LocalRig.head.rigTarget.transform.rotation = GorillaTagger.Instance.headCollider.transform.rotation;
             }
 
-            if (!W && !A && !S && !D && !Space && !Ctrl && lastPosition != Vector3.zero && stationary)
-                GorillaTagger.Instance.rigidbody.transform.position = lastPosition;
-            else
-                lastPosition = GorillaTagger.Instance.rigidbody.transform.position;
+            lastPosition = GorillaTagger.Instance.rigidbody.transform.position;
         }
 
 
@@ -2126,7 +2126,7 @@ namespace Seralyth.Mods
 
             if (frameStepper)
             {
-                if (rightTriggerPressed && !frameStepperNotified)
+                if (rightTrigger > 0.5f && !frameStepperNotified)
                 {
                     NotificationManager.SendNotification("<color=grey>[</color><color=green>MACRO</color><color=grey>]</color> Frame Stepper is on. Hit the A button to progress instead.");
                     frameStepperNotified = true;
@@ -3461,7 +3461,7 @@ namespace Seralyth.Mods
 
         public static void VRRigLateUpdate_Control()
         {
-            if (rightJoystickClick || leftJoystickClick || UnityInput.GetKeyDown(Key.Enter))
+            if (rightJoystickClick || leftJoystickClick || (!UnityInput.IsTyping() && UnityInput.GetKeyDown(Settings.pcBindings[Settings.ControllerBinding.JoystickClick])))
                 vrrigJoystickRot = null;
 
             Vector2 r = rightJoystick;
@@ -3469,10 +3469,13 @@ namespace Seralyth.Mods
             Vector2 stick = (l.sqrMagnitude > r.sqrMagnitude) ? l : r;
 
             Vector2 keys = Vector2.zero;
-            if (UnityInput.GetKey(Key.LeftArrow)) keys.x -= 1f;
-            if (UnityInput.GetKey(Key.RightArrow)) keys.x += 1f;
-            if (UnityInput.GetKey(Key.UpArrow)) keys.y += 1f;
-            if (UnityInput.GetKey(Key.DownArrow)) keys.y -= 1f;
+            if (!UnityInput.IsTyping())
+            {
+                if (UnityInput.GetKey(Key.LeftArrow)) keys.x -= 1f;
+                if (UnityInput.GetKey(Key.RightArrow)) keys.x += 1f;
+                if (UnityInput.GetKey(Key.UpArrow)) keys.y += 1f;
+                if (UnityInput.GetKey(Key.DownArrow)) keys.y -= 1f;
+            }
 
             if (keys.sqrMagnitude > 0f)
                 keys.Normalize();
@@ -3506,7 +3509,7 @@ namespace Seralyth.Mods
 
         public static void ControlBodyRotation()
         {
-            if (rightJoystickClick || leftJoystickClick || UnityInput.GetKeyDown(Key.Enter))
+            if (rightJoystickClick || leftJoystickClick || (!UnityInput.IsTyping() && UnityInput.GetKeyDown(Settings.pcBindings[Settings.ControllerBinding.JoystickClick])))
                 bodyJoystickRot = null;
 
             Vector2 r = rightJoystick;
@@ -3514,10 +3517,13 @@ namespace Seralyth.Mods
             Vector2 stick = (l.sqrMagnitude > r.sqrMagnitude) ? l : r;
 
             Vector2 keys = Vector2.zero;
-            if (UnityInput.GetKey(Key.LeftArrow)) keys.x -= 1f;
-            if (UnityInput.GetKey(Key.RightArrow)) keys.x += 1f;
-            if (UnityInput.GetKey(Key.UpArrow)) keys.y += 1f;
-            if (UnityInput.GetKey(Key.DownArrow)) keys.y -= 1f;
+            if (!UnityInput.IsTyping())
+            {
+                if (UnityInput.GetKey(Key.LeftArrow)) keys.x -= 1f;
+                if (UnityInput.GetKey(Key.RightArrow)) keys.x += 1f;
+                if (UnityInput.GetKey(Key.UpArrow)) keys.y += 1f;
+                if (UnityInput.GetKey(Key.DownArrow)) keys.y -= 1f;
+            }
 
             if (keys.sqrMagnitude > 0f)
                 keys.Normalize();

@@ -237,23 +237,83 @@ namespace Seralyth.Menu
             #region Controls
             try
             {
-                rightPrimary = ControllerInputPoller.instance.rightControllerPrimaryButton || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightPrimaryButton]);
-                rightSecondary = ControllerInputPoller.instance.rightControllerSecondaryButton || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightSecondaryButton]);
-                leftPrimary = ControllerInputPoller.instance.leftControllerPrimaryButton || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftPrimaryButton]);
-                leftSecondary = ControllerInputPoller.instance.leftControllerSecondaryButton || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftSecondaryButton]);
-                leftGrab = ControllerInputPoller.instance.leftGrab || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftGrip]);
-                rightGrab = ControllerInputPoller.instance.rightGrab || UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightGrip]);
+                // Face Buttons
+                leftPrimary = ControllerInputPoller.instance.leftControllerPrimaryButton;
+                leftSecondary = ControllerInputPoller.instance.leftControllerSecondaryButton;
+                rightPrimary = ControllerInputPoller.instance.rightControllerPrimaryButton;
+                rightSecondary = ControllerInputPoller.instance.rightControllerSecondaryButton;
+
+                if (!UnityInput.IsTyping())
+                {
+                    if (!leftPrimary)
+                        leftPrimary = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftPrimaryButton]);
+
+                    if (!leftSecondary)
+                        leftSecondary = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftSecondaryButton]);
+
+                    if (!rightPrimary)
+                        rightPrimary = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightPrimaryButton]);
+
+                    if (!rightSecondary)
+                        rightSecondary = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightSecondaryButton]);
+                }
+
+                // Grips
+                leftGrab = ControllerInputPoller.instance.leftGrab;
+                rightGrab = ControllerInputPoller.instance.rightGrab;
+
+                if (adaptiveButtons)
+                {
+                    if (!leftGrab)
+                    {
+                        switch (ControllerUtilities.GetLeftControllerType())
+                        {
+                            case ControllerUtilities.ControllerType.ValveIndex:
+                                leftGrab = ControllerInputPoller.instance.leftControllerGripFloat > 0.75f;
+                                break;
+                            case ControllerUtilities.ControllerType.VIVE:
+                                leftPrimary = leftJoystickClick;
+                                break;
+                        }
+                    }
+
+                    if (!rightGrab)
+                    {
+                        switch (ControllerUtilities.GetRightControllerType())
+                        {
+                            case ControllerUtilities.ControllerType.ValveIndex:
+                                rightGrab = ControllerInputPoller.instance.rightControllerGripFloat > 0.75f;
+                                break;
+                            case ControllerUtilities.ControllerType.VIVE:
+                                rightPrimary = rightJoystickClick;
+                                break;
+                        }
+                    }
+                }
+                
+                if (!UnityInput.IsTyping())
+                {
+                    if (!leftGrab)
+                        leftGrab = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftGrip]);
+
+                    if (!rightGrab)
+                        rightGrab = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightGrip]);
+                }
+
+                // Triggers
                 leftTrigger = ControllerInputPoller.TriggerFloat(XRNode.LeftHand);
                 rightTrigger = ControllerInputPoller.TriggerFloat(XRNode.RightHand);
-                leftTriggerPressed = leftTrigger >= 0.5f;
-                rightTriggerPressed = rightTrigger >= 0.5f;
 
-                if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftTrigger]))
-                    leftTrigger = 1f;
+                if (!UnityInput.IsTyping())
+                {
+                    if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftTrigger]))
+                        leftTrigger = 1f;
 
-                if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightTrigger]))
-                    rightTrigger = 1f;
+                    if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightTrigger]))
+                        rightTrigger = 1f;
+                }
 
+                // Joysticks
                 if (IsSteam)
                 {
                     leftJoystick = SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
@@ -271,48 +331,27 @@ namespace Seralyth.Menu
                     ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out rightJoystickClick);
                 }
 
-                bool arrowKeysPressed = UnityInput.GetKey(Key.UpArrow) || UnityInput.GetKey(Key.DownArrow) || UnityInput.GetKey(Key.LeftArrow) || UnityInput.GetKey(Key.RightArrow);
-                bool leftOverride = UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.LeftOverride]);
-
-                if (arrowKeysPressed)
+                if (!UnityInput.IsTyping())
                 {
-                    Vector2 direction = new Vector2((UnityInput.GetKey(Key.RightArrow) ? 1f : 0f) + (UnityInput.GetKey(Key.LeftArrow) ? -1f : 0f), (UnityInput.GetKey(Key.UpArrow) ? 1f : 0f) + (UnityInput.GetKey(Key.DownArrow) ? -1f : 0f));
-                    if (leftOverride)
-                        rightJoystick = direction;
-                    else
-                        leftJoystick = direction;
-                }
-
-                if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.JoystickClick]))
-                {
-                    if (leftOverride)
-                        rightJoystickClick = true;
-                    else
-                        leftJoystickClick = true;
-                }
-
-                if (adaptiveButtons)
-                {
-                    switch (ControllerUtilities.GetLeftControllerType())
+                    if (UnityInput.GetKey(Key.UpArrow) || UnityInput.GetKey(Key.DownArrow) || UnityInput.GetKey(Key.LeftArrow) || UnityInput.GetKey(Key.RightArrow))
                     {
-                        case ControllerUtilities.ControllerType.ValveIndex:
-                            leftGrab = ControllerInputPoller.instance.leftControllerGripFloat > 0.75f;
-                            break;
-                        case ControllerUtilities.ControllerType.VIVE:
-                            leftPrimary = leftJoystickClick;
-                            break;
+                        Vector2 direction = new Vector2((UnityInput.GetKey(Key.RightArrow) ? 1f : 0f) + (UnityInput.GetKey(Key.LeftArrow) ? -1f : 0f), (UnityInput.GetKey(Key.UpArrow) ? 1f : 0f) + (UnityInput.GetKey(Key.DownArrow) ? -1f : 0f));
+
+                        if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightJoystickOverride]))
+                            rightJoystick = direction;
+                        else
+                            leftJoystick = direction;
                     }
 
-                    switch (ControllerUtilities.GetRightControllerType())
+                    if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.JoystickClick]))
                     {
-                        case ControllerUtilities.ControllerType.ValveIndex:
-                            rightGrab = ControllerInputPoller.instance.rightControllerGripFloat > 0.75f;
-                            break;
-                        case ControllerUtilities.ControllerType.VIVE:
-                            rightPrimary = rightJoystickClick;
-                            break;
+                        if (UnityInput.GetKey(Settings.pcBindings[Settings.ControllerBinding.RightJoystickOverride]))
+                            rightJoystickClick = true;
+                        else
+                            leftJoystickClick = true;
                     }
                 }
+
 
                 shouldBePC = !XRSettings.isDeviceActive;
             }
@@ -350,7 +389,7 @@ namespace Seralyth.Menu
                     _ => false
                 };
 
-                bool isKeyboardCondition = UnityInput.GetKey(Key.Q) || (inTextInput && isKeyboardPc);
+                bool isKeyboardCondition = (!UnityInput.IsTyping() && UnityInput.GetKey(Key.Q)) || (inTextInput && isKeyboardPc);
                 bool buttonCondition = rightHand ? GetRightInput(menuButtonIndex) : GetLeftInput(menuButtonIndex);
 
                 if (oneHand)
@@ -6892,8 +6931,6 @@ jgs \_   _/ |Oo\
         public static bool rightGrab;
         public static float leftTrigger;
         public static float rightTrigger;
-        public static bool leftTriggerPressed;
-        public static bool rightTriggerPressed;
 
         private static readonly Dictionary<string, bool> Inputs = new Dictionary<string, bool>
         {

@@ -794,11 +794,11 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
-                    Vector3 startpos = NewPointer.transform.position + Vector3.up;
+                    Vector3 startpos = GunPointer.transform.position + Vector3.up;
                     Vector3 charvel = Vector3.zero;
 
                     if (Buttons.GetIndex("Shoot Projectiles").enabled)
@@ -853,33 +853,23 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.rightHandTransform.position;
+                    Vector3 startpos = gunLockedPlayer.rightHandTransform.position;
                     Vector3 charvel = Vector3.zero;
 
                     if (Buttons.GetIndex("Shoot Projectiles").enabled)
-                        charvel = lockTarget.rightHandTransform.transform.forward * ShootStrength;
+                        charvel = gunLockedPlayer.rightHandTransform.transform.forward * ShootStrength;
 
                     SendProjectile(GetPreferredProjectileEntry(), startpos, charvel, CalculateProjectileColor());
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -1009,31 +999,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.transform.position + new Vector3(0f, -0.4f, 0f) + lockTarget.transform.forward * 0.2f;
-                    Vector3 charvel = lockTarget.transform.forward * 8.33f;
+                    Vector3 startpos = gunLockedPlayer.transform.position + new Vector3(0f, -0.4f, 0f) + gunLockedPlayer.transform.forward * 0.2f;
+                    Vector3 charvel = gunLockedPlayer.transform.forward * 8.33f;
 
                     SendProjectile(FindProjectile("Science Candy"), startpos, charvel, Color.yellow);
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1043,31 +1022,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.transform.position + new Vector3(0f, -0.65f, 0f);
+                    Vector3 startpos = gunLockedPlayer.transform.position + new Vector3(0f, -0.65f, 0f);
                     Vector3 charvel = Vector3.zero;
 
                     SendProjectile(FindProjectile("Fish Food"), startpos, charvel, Color.brown);
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1077,31 +1045,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.transform.position + new Vector3(0f, -0.65f, 0f);
+                    Vector3 startpos = gunLockedPlayer.transform.position + new Vector3(0f, -0.65f, 0f);
                     Vector3 charvel = Vector3.zero;
 
                     SendProjectile(FindProjectile("Ice Cream"), startpos, charvel, Color.red);
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1111,31 +1068,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.transform.position + new Vector3(0f, -0.4f, 0f) + lockTarget.transform.forward * 0.2f;
-                    Vector3 charvel = lockTarget.transform.forward * 8.33f;
+                    Vector3 startpos = gunLockedPlayer.transform.position + new Vector3(0f, -0.4f, 0f) + gunLockedPlayer.transform.forward * 0.2f;
+                    Vector3 charvel = gunLockedPlayer.transform.forward * 8.33f;
 
                     SendProjectile(FindProjectile("Science Candy"), startpos, charvel, Color.ghostWhite);
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1145,31 +1091,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.headMesh.transform.position + lockTarget.headMesh.transform.forward * 0.4f + lockTarget.headMesh.transform.up * -0.05f;
-                    Vector3 charvel = lockTarget.headMesh.transform.forward * 8.33f;
+                    Vector3 startpos = gunLockedPlayer.headMesh.transform.position + gunLockedPlayer.headMesh.transform.forward * 0.4f + gunLockedPlayer.headMesh.transform.up * -0.05f;
+                    Vector3 charvel = gunLockedPlayer.headMesh.transform.forward * 8.33f;
 
                     SendProjectile(FindProjectile("Fish Food"), startpos, charvel, Color.green);
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1179,31 +1114,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.headMesh.transform.position + lockTarget.headMesh.transform.forward * 0.4f + lockTarget.headMesh.transform.up * -0.05f;
-                    Vector3 charvel = lockTarget.headMesh.transform.forward * 8.33f;
+                    Vector3 startpos = gunLockedPlayer.headMesh.transform.position + gunLockedPlayer.headMesh.transform.forward * 0.4f + gunLockedPlayer.headMesh.transform.up * -0.05f;
+                    Vector3 charvel = gunLockedPlayer.headMesh.transform.forward * 8.33f;
 
                     SendProjectile(FindProjectile("Water Balloon"), startpos, charvel, Color.cyan);
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1213,31 +1137,21 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 startpos = lockTarget.headMesh.transform.position + lockTarget.headMesh.transform.forward * 0.4f + lockTarget.headMesh.transform.up * -0.05f;
-                    Vector3 charvel = lockTarget.headMesh.transform.forward * 30f;
+                    Vector3 startpos = gunLockedPlayer.headMesh.transform.position + gunLockedPlayer.headMesh.transform.forward * 0.4f + gunLockedPlayer.headMesh.transform.up * -0.05f;
+                    Vector3 charvel = gunLockedPlayer.headMesh.transform.forward * 30f;
 
                     SendProjectile(FindProjectile("Walnut"), startpos, charvel, Color.red);
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
+
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1247,26 +1161,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    ProjectileBlindPlayer(lockTarget);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    ProjectileBlindPlayer(gunLockedPlayer);
             }
         }
 
@@ -1315,26 +1213,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    ProjectileLagPlayer(lockTarget);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    ProjectileLagPlayer(gunLockedPlayer);
             }
         }
 
@@ -1381,26 +1263,26 @@ namespace Seralyth.Mods
 
         public static void ProjectileNukeGun()
         {
-            if (!GetGunInput(false))
-                return;
+            if (GetGunInput(false))
+            {
+                var GunData = RenderGun(true);
+                GameObject GunPointer = GunData.GunPointer;
 
-            var gunData = RenderGun();
-            GameObject newPointer = gunData.NewPointer;
+                if (gunLockedPlayer != null)
+                {
+                    float t = Time.timeSinceLevelLoad;
 
-            if (!GetGunInput(true))
-                return;
+                    Vector3 startPos = GunPointer.transform.position + Vector3.up * 50f;
+                    Vector3 velocity = Physics.gravity * t;
+                    Vector3 position = startPos + 0.5f * Physics.gravity * (t * t);
 
-            float t = Time.timeSinceLevelLoad;
-
-            Vector3 startPos = newPointer.transform.position + Vector3.up * 50f;
-            Vector3 velocity = Physics.gravity * t;
-            Vector3 position = startPos + 0.5f * Physics.gravity * (t * t);
-
-            SendProjectile(
-                GetPreferredProjectileEntry(),
-                position + RandomVector3(velocity.magnitude * 0.25f).X_Z(),
-                velocity
-            );
+                    SendProjectile(
+                        GetPreferredProjectileEntry(),
+                        position + RandomVector3(velocity.magnitude * 0.25f).X_Z(),
+                        velocity
+                    );
+                }
+            }
         }
 
         public static void ProjectileRain()
@@ -1492,36 +1374,25 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 velocity = lockTarget.rightHandTransform.transform.forward * ShootStrength;
+                    Vector3 velocity = gunLockedPlayer.rightHandTransform.transform.forward * ShootStrength;
 
                     SendProjectile(
                         GetPreferredProjectileEntry(),
-                        lockTarget.rightHandTransform.transform.position,
+                        gunLockedPlayer.rightHandTransform.transform.position,
                         velocity,
                         CalculateProjectileColor(),
                         SnowballSize
                     );
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     VRRig.LocalRig.enabled = true;
                 }
             }
@@ -1532,9 +1403,10 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
-                    SendProjectile(GetGrowingSnowballProjectileEntry(), GunData.NewPointer.transform.position + new Vector3(0f, 0.1f, 0f), new Vector3(0f, 0f, 0f));
+                    SendProjectile(GetGrowingSnowballProjectileEntry(), GunPointer.transform.position + new Vector3(0f, 0.1f, 0f), new Vector3(0f, 0f, 0f));
             }
         }
 
@@ -1542,26 +1414,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaSnowballImpact(lockTarget.GetPlayer());
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaSnowballImpact(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -1686,41 +1542,24 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     foreach (VRRig rig in ActiveRigs)
                     {
-                        if (lockTarget != rig && lockTarget.IsNear(rig))
+                        if (gunLockedPlayer != rig && gunLockedPlayer.IsNear(rig))
                         {
-                            Vector3 targetDirection = rig.head.rigTarget.position - lockTarget.head.rigTarget.position;
+                            Vector3 targetDirection = rig.head.rigTarget.position - gunLockedPlayer.head.rigTarget.position;
                             SendProjectile(
                                 GetGrowingSnowballProjectileEntry(),
-                                lockTarget.head.rigTarget.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z).normalized / 1.7f,
+                                gunLockedPlayer.head.rigTarget.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z).normalized / 1.7f,
                                 new Vector3(0f, -500f, 0f)
                             );
                         }
                     }
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
             }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
-            }
-
         }
 
         public static void FlingPlayer(VRRig rig) =>
@@ -1730,26 +1569,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    FlingPlayer(lockTarget);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    FlingPlayer(gunLockedPlayer);
             }
         }
 
@@ -1818,25 +1641,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendProjectile(GetGrowingSnowballProjectileEntry(), lockTarget.headMesh.transform.position + new Vector3(0f, -0.7f, 0f), new Vector3(0f, -500f, 0f));
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendProjectile(GetGrowingSnowballProjectileEntry(), gunLockedPlayer.headMesh.transform.position + new Vector3(0f, -0.7f, 0f), new Vector3(0f, -500f, 0f));
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                {
+                }
             }
         }
 
@@ -1854,13 +1668,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                var GunData = RenderGun(true);
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     Player plr = NetPlayerToPlayer(GetPlayerFromVRRig(GetTargetPlayer(0.5f)));
-                    Vector3 targetDirection = (NewPointer.transform.position - GetVRRigFromPlayer(plr).headMesh.transform.position).normalized;
+                    Vector3 targetDirection = (GunPointer.transform.position - GetVRRigFromPlayer(plr).headMesh.transform.position).normalized;
                     SendProjectile(GetGrowingSnowballProjectileEntry(), GetVRRigFromPlayer(plr).transform.position + new Vector3(0f, 0.5f, 0f) + new Vector3(-targetDirection.x, 0f, -targetDirection.z) / 1.7f, new Vector3(0f, -500f, 0f));
                 }
             }
@@ -1870,12 +1684,11 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                var GunData = RenderGun(true);
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
-                    SendProjectile(GetGrowingSnowballProjectileEntry(), NewPointer.transform.position + new Vector3(0f, 0.1f, 0f), new Vector3(0f, -500f, 0f));
-
+                    SendProjectile(GetGrowingSnowballProjectileEntry(), GunPointer.transform.position + new Vector3(0f, 0.1f, 0f), new Vector3(0f, -500f, 0f));
             }
         }
 
@@ -1883,28 +1696,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 targetDirection = (lockTarget.headMesh.transform.position - GorillaTagger.Instance.headCollider.transform.position).normalized;
-                    SendProjectile(GetGrowingSnowballProjectileEntry(), lockTarget.headMesh.transform.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z) * 1.5f, new Vector3(0f, -100f, 0f));
+                    Vector3 targetDirection = (gunLockedPlayer.headMesh.transform.position - GorillaTagger.Instance.headCollider.transform.position).normalized;
+                    SendProjectile(GetGrowingSnowballProjectileEntry(), gunLockedPlayer.headMesh.transform.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z) * 1.5f, new Vector3(0f, -100f, 0f));
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -1921,28 +1719,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 targetDirection = (GorillaTagger.Instance.headCollider.transform.position - lockTarget.headMesh.transform.position).normalized;
-                    SendProjectile(GetGrowingSnowballProjectileEntry(), lockTarget.headMesh.transform.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z) * 1.5f, new Vector3(0f, -100f, 0f));
+                    Vector3 targetDirection = (GorillaTagger.Instance.headCollider.transform.position - gunLockedPlayer.headMesh.transform.position).normalized;
+                    SendProjectile(GetGrowingSnowballProjectileEntry(), gunLockedPlayer.headMesh.transform.position + new Vector3(0f, 0.5f, 0f) + new Vector3(targetDirection.x, 0f, targetDirection.z) * 1.5f, new Vector3(0f, -100f, 0f));
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 

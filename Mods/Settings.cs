@@ -295,9 +295,9 @@ namespace Seralyth.Mods
 
             if ((rightTrigger > 0.5f || Mouse.current.leftButton.isPressed) && !lastTrigger)
             {
-                TutorialButton gunTarget = Ray.collider.GetComponentInParent<TutorialButton>();
-                if (gunTarget)
-                    gunTarget.ClickButton();
+                TutorialButton tutorialButton = Ray.collider.GetComponentInParent<TutorialButton>();
+                if (tutorialButton)
+                    tutorialButton.ClickButton();
             }
 
             lastTrigger = rightTrigger > 0.5f || Mouse.current.leftButton.isPressed;

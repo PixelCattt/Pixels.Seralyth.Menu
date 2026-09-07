@@ -290,7 +290,7 @@ namespace Seralyth.Menu
                         }
                     }
                 }
-                
+
                 if (!UnityInput.IsTyping())
                 {
                     if (!leftGrab)
@@ -4260,17 +4260,21 @@ namespace Seralyth.Menu
         private static readonly List<float> volumeArchive = new List<float>();
         private static Vector3 GunPositionSmoothed = Vector3.zero;
 
-        public static GameObject GunPointer;
+        private static GameObject GunPointer;
         private static LineRenderer GunLine;
+
+        public static VRRig gunLockedPlayer;
 
         /// <summary>
         /// Renders a gun pointer and line from the player's target gun position.
         /// </summary>
-        /// <param name="overrideLayerMask">Layer Mask</param>
+        /// <param name="lockOnPlayers">Whether to lock the Gun onto Players</param>
+        /// <param name="layerMask">Which Layer Mask to use for the RayCast</param>
         /// <returns>RaycastHit and Pointer GameObject</returns>
-        public static (RaycastHit Ray, GameObject NewPointer) RenderGun(int? overrideLayerMask = null)
+        public static (RaycastHit Ray, GameObject GunPointer) RenderGun(bool lockOnPlayers = false, int? layerMask = null)
         {
             GunSpawned = true;
+
             Transform GunTransform = SwapGunHand ? GorillaTagger.Instance.leftHandTransform : GorillaTagger.Instance.rightHandTransform;
 
             Vector3 StartPosition = GunTransform.position;
@@ -4316,15 +4320,15 @@ namespace Seralyth.Menu
                 Right = GunTransform.right;
             }
 
-            Physics.Raycast(StartPosition + Direction / 4f * (scaleWithPlayer ? GTPlayer.Instance.scale : 1f), Direction, out var Ray, 512f, overrideLayerMask ?? NoInvisLayerMask());
+            Physics.Raycast(StartPosition + Direction / 4f * (scaleWithPlayer ? GTPlayer.Instance.scale : 1f), Direction, out var Ray, 512f, layerMask ?? DefaultLayerMask());
 
             if (shouldBePC)
             {
                 Ray ray = TPC.ScreenPointToRay(Mouse.current.position.ReadValue());
-                Physics.Raycast(ray, out Ray, 512f, NoInvisLayerMask());
+                Physics.Raycast(ray, out Ray, 512f, DefaultLayerMask());
                 Direction = ray.direction;
             }
-            Vector3 EndPosition = gunLocked ? lockTarget.transform.position : Ray.point;
+            Vector3 EndPosition = gunLockedPlayer != null ? gunLockedPlayer.transform.position : Ray.point;
 
             if (EndPosition == Vector3.zero)
                 EndPosition = StartPosition + Direction * 512f;
@@ -4347,12 +4351,12 @@ namespace Seralyth.Menu
             if (PointerRenderer.sharedMaterial.shader.name != "GUI/Text Shader")
                 PointerRenderer.material.shader = Shader.Find("GUI/Text Shader");
 
-            PointerRenderer.material.color = gunLocked || GetGunInput(true) ? buttonColors[1].GetCurrentColor() : buttonColors[0].GetCurrentColor();
+            PointerRenderer.material.color = gunLockedPlayer != null || GetGunInput(true) ? buttonColors[1].GetCurrentColor() : buttonColors[0].GetCurrentColor();
 
             if (disableGunPointer)
                 PointerRenderer.enabled = false;
 
-            if (GunParticles && (GetGunInput(true) || gunLocked))
+            if (GunParticles && (GetGunInput(true) || gunLockedPlayer != null))
             {
                 GameObject Particle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 Particle.transform.position = EndPosition;
@@ -4366,7 +4370,40 @@ namespace Seralyth.Menu
             if (gunPointerCollider != null)
                 Destroy(gunPointerCollider);
 
-            if (disableGunLine) return (Ray, GunPointer);
+            if (lockOnPlayers && GetGunInput(false))
+            {
+                if (gunLockedPlayer != null && !gunLockedPlayer.gameObject.activeSelf)
+                {
+                    gunLockedPlayer = null;
+                }
+
+                if (GetGunInput(true))
+                {
+                    if (gunLockedPlayer == null)
+                    {
+                        if (Ray.collider != null)
+                        {
+                            Transform playerGameObject = Ray.collider.transform.parent?.parent?.parent;
+
+                            if (playerGameObject != null)
+                            {
+                                VRRig gunTarget = playerGameObject.GetComponent<VRRig>();
+
+                                if (gunTarget != null && !gunTarget.IsLocal())
+                                    gunLockedPlayer = gunTarget;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                gunLockedPlayer = null;
+            }
+
+            if (disableGunLine)
+                return (Ray, GunPointer);
+
             if (GunLine == null)
             {
                 GameObject line = new GameObject("Seralyth_GunLine");
@@ -4396,7 +4433,7 @@ namespace Seralyth.Menu
             switch (gunVariation)
             {
                 case 1: // Lightning
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4411,7 +4448,7 @@ namespace Seralyth.Menu
                     }
                     break;
                 case 2: // Wavy
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4428,7 +4465,7 @@ namespace Seralyth.Menu
                     }
                     break;
                 case 3: // Blocky
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4445,7 +4482,7 @@ namespace Seralyth.Menu
                 case 4: // Sinewave
                     Step = GunLineQuality / 2;
 
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4460,7 +4497,7 @@ namespace Seralyth.Menu
                     }
                     break;
                 case 5: // Spring
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4477,7 +4514,7 @@ namespace Seralyth.Menu
                     }
                     break;
                 case 6: // Bouncy
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         GunLine.positionCount = Step;
                         GunLine.SetPosition(0, StartPosition);
@@ -4492,13 +4529,13 @@ namespace Seralyth.Menu
                     }
                     break;
                 case 7: // Audio
-                    if (GetGunInput(true) || gunLocked)
+                    if (GetGunInput(true) || gunLockedPlayer != null)
                     {
                         float audioSize = 0f;
 
-                        if (gunLocked)
+                        if (gunLockedPlayer != null)
                         {
-                            GorillaSpeakerLoudness targetRecorder = lockTarget.GetComponent<GorillaSpeakerLoudness>();
+                            GorillaSpeakerLoudness targetRecorder = gunLockedPlayer.GetComponent<GorillaSpeakerLoudness>();
                             if (targetRecorder != null)
                                 audioSize += targetRecorder.Loudness * 3f;
                         }
@@ -4566,7 +4603,7 @@ namespace Seralyth.Menu
                         physics = GunLine.gameObject.AddComponent<RopePhysics>();
                     }
 
-                    physics.segmentLength = Vector3.Distance(StartPosition, EndPosition) / (Step - 1) * (GetGunInput(true) || gunLocked ? 1.1f : 1.2f);
+                    physics.segmentLength = Vector3.Distance(StartPosition, EndPosition) / (Step - 1) * (GetGunInput(true) || gunLockedPlayer != null ? 1.1f : 1.2f);
                     physics.SetStartPosition(StartPosition);
                     physics.SetEndPosition(EndPosition);
                     break;
@@ -4601,7 +4638,7 @@ namespace Seralyth.Menu
                     : GriplessGuns || (SwapGunHand ? GiveGunTarget.leftMiddle.calcT > 0.5f : GiveGunTarget.rightMiddle.calcT > 0.5f)
                 : isShooting
                 ? TriggerlessGuns || (SwapGunHand ? leftTrigger > 0.5f : rightTrigger > 0.5f) || Mouse.current.leftButton.isPressed
-                : GriplessGuns || (SwapGunHand ? leftGrab : rightGrab) || (HardGunLocks && gunLocked && !rightSecondary) || Mouse.current.rightButton.isPressed;
+                : GriplessGuns || (SwapGunHand ? leftGrab : rightGrab) || (HardGunLocks && gunLockedPlayer != null && !rightSecondary) || Mouse.current.rightButton.isPressed;
         }
 
         /// <summary>
@@ -5942,6 +5979,16 @@ namespace Seralyth.Menu
             catch { }
         }
 
+        private static int? defaultLayerMask;
+        public static int DefaultLayerMask()
+        {
+            defaultLayerMask ??= (1 << LayerMask.NameToLayer("Default"))
+                               | (1 << LayerMask.NameToLayer("Gorilla Object"))
+                               | (1 << LayerMask.NameToLayer("Gorilla Tag Collider"));
+
+            return defaultLayerMask ?? GTPlayer.Instance.locomotionEnabledLayers;
+        }
+
         private static int? noInvisLayerMask;
         public static int NoInvisLayerMask()
         {
@@ -5952,7 +5999,8 @@ namespace Seralyth.Menu
                 1 << LayerMask.NameToLayer("Gorilla Trigger") |
                 1 << LayerMask.NameToLayer("Gorilla Boundary") |
                 1 << LayerMask.NameToLayer("GorillaCosmetics") |
-                1 << LayerMask.NameToLayer("GorillaParticle"));
+                1 << LayerMask.NameToLayer("GorillaParticle")
+            );
 
             return noInvisLayerMask ?? GTPlayer.Instance.locomotionEnabledLayers;
         }
@@ -6870,8 +6918,6 @@ jgs \_   _/ |Oo\
         public static int GunLineQuality = 50;
 
         public static bool GunSpawned;
-        public static bool gunLocked;
-        public static VRRig lockTarget;
 
         public static bool lastGunSpawned;
         public static bool lastGunTrigger;

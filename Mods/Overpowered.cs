@@ -70,15 +70,11 @@ namespace Seralyth.Mods
             }
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        RoomControls.KickPlayer(gunTarget.GetPlayer().ActorNumber);
-                    }
+                    if (gunLockedPlayer)
+                        RoomControls.KickPlayer(gunLockedPlayer.GetPlayer().ActorNumber);
                 }
             }
         }
@@ -103,15 +99,11 @@ namespace Seralyth.Mods
             }
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        RoomControls.KickAndBlockPlayer(gunTarget.GetPlayer().ActorNumber);
-                    }
+                    if (gunLockedPlayer)
+                        RoomControls.KickAndBlockPlayer(gunLockedPlayer.GetPlayer().ActorNumber);
                 }
             }
         }
@@ -136,28 +128,10 @@ namespace Seralyth.Mods
             }
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null && !RoomControls.MutedPlayers.ContainsKey(lockTarget.GetPlayer().UserId))
-                    RoomControls.MutePlayer(lockTarget.GetPlayer().ActorNumber);
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && !gunTarget.IsTagged())
-                    {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null && !RoomControls.MutedPlayers.ContainsKey(gunLockedPlayer.GetPlayer().UserId))
+                    RoomControls.MutePlayer(gunLockedPlayer.GetPlayer().ActorNumber);
             }
         }
 
@@ -202,15 +176,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > guardianDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        SetGuardianTarget(GetPlayerFromVRRig(gunTarget));
+                        SetGuardianTarget(GetPlayerFromVRRig(gunLockedPlayer));
                         guardianDelay = Time.time + 0.1f;
                     }
                 }
@@ -245,17 +217,15 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > guardianDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
                         if (NetworkSystem.Instance.IsMasterClient)
                         {
-                            foreach (var gorillaGuardianZoneManager in GorillaGuardianZoneManager.zoneManagers.Where(gorillaGuardianZoneManager => gorillaGuardianZoneManager.enabled && gorillaGuardianZoneManager.IsZoneValid()).Where(gorillaGuardianZoneManager => gorillaGuardianZoneManager.CurrentGuardian == GetPlayerFromVRRig(gunTarget)))
+                            foreach (var gorillaGuardianZoneManager in GorillaGuardianZoneManager.zoneManagers.Where(gorillaGuardianZoneManager => gorillaGuardianZoneManager.enabled && gorillaGuardianZoneManager.IsZoneValid()).Where(gorillaGuardianZoneManager => gorillaGuardianZoneManager.CurrentGuardian == GetPlayerFromVRRig(gunLockedPlayer)))
                                 gorillaGuardianZoneManager.SetGuardian(null);
                         }
                         else NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
@@ -304,17 +274,15 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > playerColorDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
                         playerColorDelay = Time.time + 0.1f;
                         if (PhotonNetwork.IsMasterClient)
-                            SetPlayerColors(new Dictionary<int, int> { { GetPlayerFromVRRig(gunTarget).ActorNumber, color } });
+                            SetPlayerColors(new Dictionary<int, int> { { GetPlayerFromVRRig(gunLockedPlayer).ActorNumber, color } });
                         else
                             NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                     }
@@ -346,37 +314,19 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > playerColorDelay)
                     {
                         playerColorDelay = Time.time + 0.1f;
                         if (NetworkSystem.Instance.IsMasterClient)
-                            SetPlayerColors(new Dictionary<int, int> { { lockTarget.GetPlayer().ActorNumber, Time.time % 0.2f > 0.1f ? 1 : 0 } });
+                            SetPlayerColors(new Dictionary<int, int> { { gunLockedPlayer.GetPlayer().ActorNumber, Time.time % 0.2f > 0.1f ? 1 : 0 } });
                         else
                             NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && !gunTarget.IsTagged())
-                    {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -443,10 +393,9 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (!NetworkSystem.Instance.IsMasterClient)
                         NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
@@ -455,27 +404,10 @@ namespace Seralyth.Mods
                         if (Time.time > materialDelay)
                         {
                             materialDelay = Time.time + 0.1f;
-                            MaterialTarget(lockTarget);
+                            MaterialTarget(gunLockedPlayer);
                         }
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && !gunTarget.IsTagged())
-                    {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -586,32 +518,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > crashAllDelay)
                     {
                         crashAllDelay = Time.time + 0.1f;
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), lockTarget.transform.position.z < -28.5f ? (new Vector3(-47.82025f, 6.460508f, -29.04836f) - lockTarget.transform.position).normalized * 50f : lockTarget.transform.position.z < -23f ? new Vector3(-50f, 0f, 50f) : Vector3.left * 50f);
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), gunLockedPlayer.transform.position.z < -28.5f ? (new Vector3(-47.82025f, 6.460508f, -29.04836f) - gunLockedPlayer.transform.position).normalized * 50f : gunLockedPlayer.transform.position.z < -23f ? new Vector3(-50f, 0f, 50f) : Vector3.left * 50f);
                         RPCProtection();
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -644,32 +561,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    if (Time.time > crashAllDelay && lockTarget.transform.position.x < -5)
+                    if (Time.time > crashAllDelay && gunLockedPlayer.transform.position.x < -5)
                     {
                         crashAllDelay = Time.time + 0.1f;
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), (lockTarget.transform.position.y > 55f ? Vector3.right : Vector3.up) * 50f);
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), (gunLockedPlayer.transform.position.y > 55f ? Vector3.right : Vector3.up) * 50f);
                         RPCProtection();
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -712,29 +614,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (PhotonNetwork.IsMasterClient)
-                        CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, locked, lockTarget.GetPlayer().ActorNumber);
+                        CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, locked, gunLockedPlayer.GetPlayer().ActorNumber);
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -742,36 +628,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (PhotonNetwork.IsMasterClient)
                     {
                         if (Time.time > spazDriverDelay)
                         {
                             spazDriverDelay = Time.time + 0.1f;
-                            CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, true, lockTarget.GetPlayer().ActorNumber);
-                            CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, false, lockTarget.GetPlayer().ActorNumber);
+                            CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, true, gunLockedPlayer.GetPlayer().ActorNumber);
+                            CustomMapsTerminal.instance.mapTerminalNetworkObject.SendRPC("SetTerminalControlStatus_RPC", true, false, gunLockedPlayer.GetPlayer().ActorNumber);
                         }
                     }
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -820,7 +690,7 @@ namespace Seralyth.Mods
                 {
                     id = CustomMaps.Manager.currentMapId == 4977315 ? 5024157 : 4977315;
 
-                    CustomMapsTerminal.instance.mapTerminalNetworkObject.photonView.RPC("UpdateScreen_RPC", lockTarget.GetPhotonPlayer(), new object[]
+                    CustomMapsTerminal.instance.mapTerminalNetworkObject.photonView.RPC("UpdateScreen_RPC", gunLockedPlayer.GetPhotonPlayer(), new object[]
                     {
                         6,
                         id,
@@ -834,15 +704,11 @@ namespace Seralyth.Mods
 
             if (GetGunInput(false) && id != null)
             {
-                var GunData = RenderGun();
+                var GunData = RenderGun(true);
                 RaycastHit Ray = GunData.Ray;
 
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                        CustomMapsTerminal.instance.mapTerminalNetworkObject.photonView.RPC("SetRoomMap_RPC", lockTarget.GetPhotonPlayer(), id.Value);
-                }
+                if (gunLockedPlayer)
+                    CustomMapsTerminal.instance.mapTerminalNetworkObject.photonView.RPC("SetRoomMap_RPC", gunLockedPlayer.GetPhotonPlayer(), id.Value);
             }
         }
 
@@ -960,26 +826,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    GameEntityCrash(ManagerRegistry.CustomMaps.GameEntityManager, lockTarget.GetPhotonPlayer(), lockTarget.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    GameEntityCrash(ManagerRegistry.CustomMaps.GameEntityManager, gunLockedPlayer.GetPhotonPlayer(), gunLockedPlayer.transform.position);
             }
         }
 
@@ -990,26 +840,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    GameEntityCrash(ManagerRegistry.GhostReactor.GameEntityManager, lockTarget.GetPhotonPlayer(), lockTarget.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    GameEntityCrash(ManagerRegistry.GhostReactor.GameEntityManager, gunLockedPlayer.GetPhotonPlayer(), gunLockedPlayer.transform.position);
             }
         }
 
@@ -1020,26 +854,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    GameEntityCrash(ManagerRegistry.SuperInfection.GameEntityManager, lockTarget.GetPhotonPlayer(), lockTarget.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    GameEntityCrash(ManagerRegistry.SuperInfection.GameEntityManager, gunLockedPlayer.GetPhotonPlayer(), gunLockedPlayer.transform.position);
             }
         }
 
@@ -1050,26 +868,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    CreateItem(lockTarget.GetPlayer(), GadgetByName["WristJetGadgetPropellor"], lockTarget.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero, 0L, ManagerRegistry.SuperInfection.GameEntityManager);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    CreateItem(gunLockedPlayer.GetPlayer(), GadgetByName["WristJetGadgetPropellor"], gunLockedPlayer.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero, 0L, ManagerRegistry.SuperInfection.GameEntityManager);
             }
         }
 
@@ -1081,16 +883,12 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && !gunLocked)
+                    if (gunLockedPlayer)
                     {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
 
                         if (VRRig.LocalRig.IsTagged())
                         {
@@ -1098,7 +896,7 @@ namespace Seralyth.Mods
                             return;
                         }
 
-                        if (!lockTarget.IsTagged())
+                        if (!gunLockedPlayer.IsTagged())
                         {
                             NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> The target must be tagged.");
                             return;
@@ -1113,22 +911,22 @@ namespace Seralyth.Mods
                         if (Time.time > reportDelay)
                         {
                             reportDelay = Time.time + 0.5f;
-                            GorillaPlayerScoreboardLine.ReportPlayer(lockTarget.GetPlayer().UserId, GorillaPlayerLineButton.ButtonType.Cheating, lockTarget.GetPlayer().NickName);
+                            GorillaPlayerScoreboardLine.ReportPlayer(gunLockedPlayer.GetPlayer().UserId, GorillaPlayerLineButton.ButtonType.Cheating, gunLockedPlayer.GetPlayer().NickName);
                         }
 
                         SerializePatch.OverrideSerialization = () =>
                         {
-                            lockTarget.GetPlayer();
+                            gunLockedPlayer.GetPlayer();
                             MassSerialize(true, new[] { VRRig.LocalRig.GetPhotonView() });
 
                             Vector3 positionArchive = VRRig.LocalRig.transform.position;
-                            SendSerialize(VRRig.LocalRig.GetPhotonView(), new RaiseEventOptions { TargetActors = PhotonNetwork.PlayerList.Where(plr => !(new[] { PhotonNetwork.MasterClient.ActorNumber, lockTarget.GetPlayer().ActorNumber }).Contains(plr.ActorNumber)).Select(plr => plr.ActorNumber).ToArray() });
+                            SendSerialize(VRRig.LocalRig.GetPhotonView(), new RaiseEventOptions { TargetActors = PhotonNetwork.PlayerList.Where(plr => !(new[] { PhotonNetwork.MasterClient.ActorNumber, gunLockedPlayer.GetPlayer().ActorNumber }).Contains(plr.ActorNumber)).Select(plr => plr.ActorNumber).ToArray() });
 
                             VRRig.LocalRig.transform.position = new Vector3(99999f, 99999f, 99999f);
                             SendSerialize(VRRig.LocalRig.GetPhotonView(), new RaiseEventOptions { TargetActors = new[] { PhotonNetwork.MasterClient.ActorNumber } });
 
-                            VRRig.LocalRig.transform.position = lockTarget.rightHandTransform.position;
-                            SendSerialize(VRRig.LocalRig.GetPhotonView(), new RaiseEventOptions { TargetActors = new[] { lockTarget.GetPlayer().ActorNumber } });
+                            VRRig.LocalRig.transform.position = gunLockedPlayer.rightHandTransform.position;
+                            SendSerialize(VRRig.LocalRig.GetPhotonView(), new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } });
 
                             RPCProtection();
                             VRRig.LocalRig.transform.position = positionArchive;
@@ -1140,9 +938,8 @@ namespace Seralyth.Mods
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
-                    gunLocked = false;
                     SerializePatch.OverrideSerialization = null;
                 }
             }
@@ -1164,7 +961,7 @@ namespace Seralyth.Mods
                     return true;
                 }
 
-                lockTarget.GetPlayer();
+                gunLockedPlayer.GetPlayer();
                 MassSerialize(true, new[] { VRRig.LocalRig.GetPhotonView() });
 
                 Vector3 positionArchive = VRRig.LocalRig.transform.position;
@@ -1221,8 +1018,6 @@ namespace Seralyth.Mods
             }
         }
 
-
-
         public static void ForceGrab(Vector3 targetTransform)
         {
             foreach (VRRig rig in VRRigExtensions.ActiveRigs)
@@ -1270,7 +1065,6 @@ namespace Seralyth.Mods
 
             return false;
         }
-
 
         public static void FlingOnGrab()
         {
@@ -1588,10 +1382,10 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
-                    CreateItem(RpcTarget.All, objectId, NewPointer.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero);
+                    CreateItem(RpcTarget.All, objectId, GunPointer.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero);
             }
         }
 
@@ -1899,12 +1693,12 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (basePosition == null)
-                        basePosition = NewPointer.transform.position + Vector3.up;
+                        basePosition = GunPointer.transform.position + Vector3.up;
 
                     if (Time.time > textDelay)
                     {
@@ -1943,12 +1737,12 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (basePosition == null)
-                        basePosition = NewPointer.transform.position + Vector3.up;
+                        basePosition = GunPointer.transform.position + Vector3.up;
 
                     if (Time.time > textDelay)
                     {
@@ -1999,10 +1793,10 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
-                    CoroutineManager.instance.StartCoroutine(DrawSmallDelay(NewPointer.transform.position, ObjectByName["GhostReactorCollectibleCore"], ManagerRegistry.GhostReactor.GameEntityManager));
+                    CoroutineManager.instance.StartCoroutine(DrawSmallDelay(GunPointer.transform.position, ObjectByName["GhostReactorCollectibleCore"], ManagerRegistry.GhostReactor.GameEntityManager));
             }
         }
 
@@ -2011,12 +1805,12 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     int[] objectIds = GadgetByName.Select(element => element.Value).ToArray();
-                    CoroutineManager.instance.StartCoroutine(DrawSmallDelay(NewPointer.transform.position, objectIds[Random.Range(0, objectIds.Length)], ManagerRegistry.SuperInfection.GameEntityManager));
+                    CoroutineManager.instance.StartCoroutine(DrawSmallDelay(GunPointer.transform.position, objectIds[Random.Range(0, objectIds.Length)], ManagerRegistry.SuperInfection.GameEntityManager));
                 }
             }
         }
@@ -2027,7 +1821,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -2040,7 +1834,7 @@ namespace Seralyth.Mods
                         {
                             if (entity != null)
                             {
-                                float distance = Vector3.Distance(NewPointer.transform.position, entity.transform.position);
+                                float distance = Vector3.Distance(GunPointer.transform.position, entity.transform.position);
                                 if (distance < 0.75f && distance < closestDist)
                                 {
                                     gameEntity = entity;
@@ -2343,26 +2137,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaFireBlaster(lockTarget.transform.position, direction.normalized);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, direction.normalized);
             }
         }
 
@@ -2402,26 +2180,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaFireBlaster(lockTarget.transform.position, GorillaTagger.Instance.bodyCollider.transform.position - lockTarget.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, GorillaTagger.Instance.bodyCollider.transform.position - gunLockedPlayer.transform.position);
             }
         }
 
@@ -2461,26 +2223,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaFireBlaster(lockTarget.transform.position, lockTarget.transform.position - GorillaTagger.Instance.bodyCollider.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, gunLockedPlayer.transform.position - GorillaTagger.Instance.bodyCollider.transform.position);
             }
         }
 
@@ -2520,26 +2266,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaFireBlaster(lockTarget.transform.position, lockTarget.transform.position.z < -28.5f ? (new Vector3(-47.82025f, 6.460508f, -29.04836f) - lockTarget.transform.position).normalized : lockTarget.transform.position.z < -23f ? new Vector3(-50f, 0f, 50f) : Vector3.left);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, gunLockedPlayer.transform.position.z < -28.5f ? (new Vector3(-47.82025f, 6.460508f, -29.04836f) - gunLockedPlayer.transform.position).normalized : gunLockedPlayer.transform.position.z < -23f ? new Vector3(-50f, 0f, 50f) : Vector3.left);
             }
         }
 
@@ -2579,26 +2309,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    BetaFireBlaster(lockTarget.transform.position, lockTarget.transform.position.y > 55f ? Vector3.right : Vector3.up);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, gunLockedPlayer.transform.position.y > 55f ? Vector3.right : Vector3.up);
             }
         }
 
@@ -2638,26 +2352,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null && lockTarget.Distance(GorillaTagger.Instance.bodyCollider.transform.position) > 0.5f)
-                    BetaFireBlaster(lockTarget.transform.position, GorillaTagger.Instance.bodyCollider.transform.position - lockTarget.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null && gunLockedPlayer.Distance(GorillaTagger.Instance.bodyCollider.transform.position) > 0.5f)
+                    BetaFireBlaster(gunLockedPlayer.transform.position, GorillaTagger.Instance.bodyCollider.transform.position - gunLockedPlayer.transform.position);
             }
         }
 
@@ -2679,10 +2377,10 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
-                    CreateItem(RpcTarget.All, objectId, NewPointer.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero, 0L, ManagerRegistry.SuperInfection.GameEntityManager);
+                    CreateItem(RpcTarget.All, objectId, GunPointer.transform.position, RandomQuaternion(), Vector3.zero, Vector3.zero, 0L, ManagerRegistry.SuperInfection.GameEntityManager);
             }
         }
 
@@ -2733,7 +2431,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -2746,7 +2444,7 @@ namespace Seralyth.Mods
                         {
                             if (entity != null)
                             {
-                                float distance = Vector3.Distance(NewPointer.transform.position, entity.transform.position);
+                                float distance = Vector3.Distance(GunPointer.transform.position, entity.transform.position);
                                 if (distance < 0.75f && distance < closestDist)
                                 {
                                     gameEntity = entity;
@@ -2848,14 +2546,12 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                        LucyChase(gunTarget.GetPlayer());
+                    if (gunLockedPlayer)
+                        LucyChase(gunLockedPlayer.GetPlayer());
                 }
             }
         }
@@ -2885,26 +2581,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    LucyAttack(lockTarget.GetPlayer());
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    LucyAttack(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -2912,10 +2592,9 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     HalloweenGhostChaser hgc = Lucy;
                     if (hgc.IsMine)
@@ -2923,31 +2602,16 @@ namespace Seralyth.Mods
                         if (Time.time > lucyDelay)
                         {
                             hgc.currentState = hgc.currentState == HalloweenGhostChaser.ChaseState.Grabbing ? HalloweenGhostChaser.ChaseState.Chasing : HalloweenGhostChaser.ChaseState.Grabbing;
-                            hgc.transform.position = lockTarget.transform.position + Vector3.up;
+                            hgc.transform.position = gunLockedPlayer.transform.position + Vector3.up;
                             hgc.currentSpeed = 0f;
-                            hgc.targetPlayer = lockTarget.GetPlayer();
-                            hgc.followTarget = lockTarget.transform;
+                            hgc.targetPlayer = gunLockedPlayer.GetPlayer();
+                            hgc.followTarget = gunLockedPlayer.transform;
                             lucyDelay = Time.time + 0.1f;
                         }
                     }
                     else
                         NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3040,12 +2704,12 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (Lucy.IsMine)
-                        Lucy.transform.position = NewPointer.transform.position + Vector3.up;
+                        Lucy.transform.position = GunPointer.transform.position + Vector3.up;
                     else NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                 }
             }
@@ -3079,12 +2743,12 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (Lurker.IsMine)
-                        Lurker.transform.position = NewPointer.transform.position + Vector3.up;
+                        Lurker.transform.position = GunPointer.transform.position + Vector3.up;
                     else NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                 }
             }
@@ -3119,26 +2783,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    LurkerAttack(lockTarget.GetPlayer());
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    LurkerAttack(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -3305,18 +2953,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > grabDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
                         GorillaGuardianManager gman = (GorillaGuardianManager)GorillaGameManager.instance;
                         if (gman.IsPlayerGuardian(NetworkSystem.Instance.LocalPlayer))
                         {
-                            GetNetworkViewFromVRRig(gunTarget).SendRPC("GrabbedByPlayer", RpcTarget.Others, true, false, false);
+                            GetNetworkViewFromVRRig(gunLockedPlayer).SendRPC("GrabbedByPlayer", RpcTarget.Others, true, false, false);
                             RPCProtection();
                         }
                         else
@@ -3351,18 +2997,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > releaseDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
                         GorillaGuardianManager gman = (GorillaGuardianManager)GorillaGameManager.instance;
                         if (gman.IsPlayerGuardian(NetworkSystem.Instance.LocalPlayer))
                         {
-                            GetNetworkViewFromVRRig(gunTarget).SendRPC("DroppedByPlayer", RpcTarget.Others, new Vector3(0f, 0f, 0f));
+                            GetNetworkViewFromVRRig(gunLockedPlayer).SendRPC("DroppedByPlayer", RpcTarget.Others, new Vector3(0f, 0f, 0f));
                             RPCProtection();
                         }
                         else
@@ -3398,15 +3042,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > flingDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        BetaSetVelocityPlayer(GetPlayerFromVRRig(gunTarget), new Vector3(0f, 19.9f, 0f));
+                        BetaSetVelocityPlayer(GetPlayerFromVRRig(gunLockedPlayer), new Vector3(0f, 19.9f, 0f));
                         RPCProtection();
                         flingDelay = Time.time + 0.1f;
                     }
@@ -3429,32 +3071,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > flingDelay)
                     {
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), RandomVector3(50f));
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), RandomVector3(50f));
                         RPCProtection();
                         flingDelay = Time.time + 0.1f;
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3472,28 +3099,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (!NetworkSystem.Instance.IsMasterClient) { NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client."); return; }
-                    Fun.RequestCreatePiece(1934114066, new Vector3(-127.6248f, 16.99441f, -217.2094f), Quaternion.identity, 0, NetPlayerToPlayer(lockTarget.GetPlayer()), false, true);
+                    Fun.RequestCreatePiece(1934114066, new Vector3(-127.6248f, 16.99441f, -217.2094f), Quaternion.identity, 0, NetPlayerToPlayer(gunLockedPlayer.GetPlayer()), false, true);
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3567,32 +3179,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > flingDelay)
                     {
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), Vector3.zero);
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), Vector3.zero);
                         RPCProtection();
                         flingDelay = Time.time + 0.1f;
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3621,13 +3218,13 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (Time.time > flingDelay)
                     {
-                        BetaSetVelocityPlayer(player, Vector3.Normalize(NewPointer.transform.position - GetVRRigFromPlayer(player).transform.position) * 50f);
+                        BetaSetVelocityPlayer(player, Vector3.Normalize(GunPointer.transform.position - GetVRRigFromPlayer(player).transform.position) * 50f);
                         RPCProtection();
                         flingDelay = Time.time + 0.2f;
                     }
@@ -3639,32 +3236,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > flingDelay)
                     {
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), (GorillaTagger.Instance.bodyCollider.transform.position - lockTarget.transform.position).normalized * 20f);
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), (GorillaTagger.Instance.bodyCollider.transform.position - gunLockedPlayer.transform.position).normalized * 20f);
                         RPCProtection();
                         flingDelay = Time.time + 0.1f;
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3685,32 +3267,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > flingDelay)
                     {
-                        BetaSetVelocityPlayer(lockTarget.GetPlayer(), (lockTarget.transform.position - GorillaTagger.Instance.bodyCollider.transform.position).normalized * 20f);
+                        BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), (gunLockedPlayer.transform.position - GorillaTagger.Instance.bodyCollider.transform.position).normalized * 20f);
                         RPCProtection();
                         flingDelay = Time.time + 0.1f;
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3753,35 +3320,20 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > thingdeb)
                     {
-                        if (lockTarget.rightThumb.calcT > 0.5f)
+                        if (gunLockedPlayer.rightThumb.calcT > 0.5f)
                         {
-                            BetaSetVelocityPlayer(lockTarget.GetPlayer(), lockTarget.headMesh.transform.forward * Movement._flySpeed);
+                            BetaSetVelocityPlayer(gunLockedPlayer.GetPlayer(), gunLockedPlayer.headMesh.transform.forward * Movement._flySpeed);
                             RPCProtection();
                         }
                         thingdeb = Time.time + 0.1f;
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -3841,14 +3393,14 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (Time.time > flingDelay)
                     {
                         foreach (var plr in VRRigExtensions.ActiveRigs.Where(plr => !plr.isLocal))
-                            BetaSetVelocityPlayer(GetPlayerFromVRRig(plr), Vector3.Normalize(NewPointer.transform.position - plr.transform.position) * 50f);
+                            BetaSetVelocityPlayer(GetPlayerFromVRRig(plr), Vector3.Normalize(GunPointer.transform.position - plr.transform.position) * 50f);
 
                         RPCProtection();
                         flingDelay = Time.time + 0.2f;
@@ -3862,14 +3414,14 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (Time.time > flingDelay)
                     {
                         foreach (var plr in VRRigExtensions.ActiveRigs.Where(plr => !plr.isLocal))
-                            BetaSetVelocityPlayer(GetPlayerFromVRRig(plr), Vector3.Normalize(plr.transform.position - NewPointer.transform.position) * 50f);
+                            BetaSetVelocityPlayer(GetPlayerFromVRRig(plr), Vector3.Normalize(plr.transform.position - GunPointer.transform.position) * 50f);
 
                         RPCProtection();
                         flingDelay = Time.time + 0.2f;
@@ -3942,7 +3494,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -3951,7 +3503,7 @@ namespace Seralyth.Mods
                     {
                         if (gman.IsPlayerGuardian(NetworkSystem.Instance.LocalPlayer))
                         {
-                            GameMode.ActiveNetworkHandler.NetView.GetView.RPC(flip ? "ShowSlamEffect" : "ShowSlapEffects", RpcTarget.All, NewPointer.transform.position, new Vector3(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)));
+                            GameMode.ActiveNetworkHandler.NetView.GetView.RPC(flip ? "ShowSlamEffect" : "ShowSlapEffects", RpcTarget.All, GunPointer.transform.position, new Vector3(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)));
                             RPCProtection();
                             flip = !flip;
                         }
@@ -4261,26 +3813,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    ForceGrab(lockTarget, VRRig.LocalRig.transform.position);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    ForceGrab(gunLockedPlayer, VRRig.LocalRig.transform.position);
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
                 VRRig.LocalRig.enabled = true;
             }
         }
@@ -4289,58 +3828,45 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    if (!lockTarget.IsBeingHeld())
+                    if (!gunLockedPlayer.IsBeingHeld())
                     {
-                        if (!lockTarget.IsNear())
+                        if (!gunLockedPlayer.IsNear())
                         {
                             VRRig.LocalRig.enabled = false;
-                            VRRig.LocalRig.transform.position = lockTarget.transform.position;
+                            VRRig.LocalRig.transform.position = gunLockedPlayer.transform.position;
                         }
                         else if (!VRRig.LocalRig.enabled)
                             VRRig.LocalRig.enabled = true;
-                        VRRig.LocalRig.rightHandLink.TentacleTryCreateLink(lockTarget.rightHandLink);
+                        VRRig.LocalRig.rightHandLink.TentacleTryCreateLink(gunLockedPlayer.rightHandLink);
                     }
-                    else if (lockTarget.IsBeingHeld(VRRig.LocalRig))
+                    else if (gunLockedPlayer.IsBeingHeld(VRRig.LocalRig))
                     {
-                        if (lockTarget.rightHandLink.grabbedPlayer == VRRig.LocalRig.GetPlayer())
+                        if (gunLockedPlayer.rightHandLink.grabbedPlayer == VRRig.LocalRig.GetPlayer())
                         {
-                            Vector3 velocity = lockTarget.transform.up * 3f;
-                            lockTarget.GetNetView().SendRPC("DroppedByPlayer", lockTarget.GetPlayer(), velocity);
+                            Vector3 velocity = gunLockedPlayer.transform.up * 3f;
+                            gunLockedPlayer.GetNetView().SendRPC("DroppedByPlayer", gunLockedPlayer.GetPlayer(), velocity);
                         }
 
-                    }
-                }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
                     }
                 }
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
                 VRRig.LocalRig.enabled = true;
             }
         }
 
         public static void GrabFlingAll()
         {
-            if (!VRRig.LocalRig.IsBeingHeld() && !lockTarget.IsNear())
+            if (!VRRig.LocalRig.IsBeingHeld() && !gunLockedPlayer.IsNear())
             {
                 VRRig.LocalRig.enabled = false;
-                VRRig.LocalRig.transform.position = lockTarget.transform.position;
-                VRRig.LocalRig.rightHandLink.TentacleTryCreateLink(lockTarget.rightHandLink);
+                VRRig.LocalRig.transform.position = gunLockedPlayer.transform.position;
+                VRRig.LocalRig.rightHandLink.TentacleTryCreateLink(gunLockedPlayer.rightHandLink);
             }
             else if (VRRig.LocalRig.IsBeingHeld())
             {
@@ -4354,26 +3880,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    ForceGrab(lockTarget, VRRig.LocalRig.transform.position - VRRig.LocalRig.transform.forward * 10f);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    ForceGrab(gunLockedPlayer, VRRig.LocalRig.transform.position - VRRig.LocalRig.transform.forward * 10f);
             }
         }
 
@@ -4384,26 +3894,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    ForceGrab(lockTarget, VRRig.LocalRig.transform.position = lockTarget.transform.position - lockTarget.transform.forward * 10f);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    ForceGrab(gunLockedPlayer, VRRig.LocalRig.transform.position = gunLockedPlayer.transform.position - gunLockedPlayer.transform.forward * 10f);
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
                 VRRig.LocalRig.enabled = true;
             }
         }
@@ -4418,26 +3915,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
                 float value = float.MaxValue / 4f;
-                if (gunLocked && lockTarget != null)
-                    ForceGrab(lockTarget, new Vector3(value, -value, value));
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    ForceGrab(gunLockedPlayer, new Vector3(value, -value, value));
             }
             else
             {
-                if (gunLocked)
-                    gunLocked = false;
                 VRRig.LocalRig.enabled = true;
             }
         }
@@ -4452,26 +3936,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    LagPlayer(lockTarget.GetPlayer());
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    LagPlayer(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -4568,33 +4036,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     for (int i = 0; i < 2; i++)
-                        MuteTarget(new int[] { lockTarget.GetPlayer().ActorNumber });
-                }
-
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
+                        MuteTarget(new int[] { gunLockedPlayer.GetPlayer().ActorNumber });
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -4608,71 +4060,44 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, Vector3.up * 15000, Random.rotation, new RaiseEventOptions { TargetActors = new[] { lockTarget.GetPlayer().ActorNumber } });
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, Vector3.up * 15000, Random.rotation, new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } });
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
+
         public static void BarrelFlingAll()
         {
             foreach (var TargetRig in VRRigExtensions.ActiveRigs.Where(TargetRig => !TargetRig.IsTagged()))
-                SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, Vector3.up * 15000, Random.rotation, new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
+                SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, Vector3.up * 15000, Random.rotation, new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
         }
+
         public static void BarrelObliterateGun()
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, lockTarget.bodyTransform.up * int.MaxValue, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { lockTarget.GetPlayer().ActorNumber } });
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, gunLockedPlayer.bodyTransform.up * int.MaxValue, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } });
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
         public static void BarrelObliterateAll()
         {
             foreach (var TargetRig in VRRigExtensions.ActiveRigs.Where(TargetRig => !TargetRig.IsTagged()))
-                SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, lockTarget.bodyTransform.up * int.MaxValue, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
+                SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, gunLockedPlayer.bodyTransform.up * int.MaxValue, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
         }
+
         public static void BarrelPunchMod()
         {
             foreach (VRRig rig in VRRigExtensions.ActiveRigs)
@@ -4692,36 +4117,21 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, lockTarget.bodyTransform.up * 10000f, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { lockTarget.GetPlayer().ActorNumber } });
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, gunLockedPlayer.bodyTransform.up * 10000f, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } });
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
         public static void BarrelCrashAll()
         {
             foreach (var TargetRig in VRRigExtensions.ActiveRigs.Where(TargetRig => !TargetRig.IsTagged()))
-                SendBarrelProjectile(lockTarget.transform.position + Vector3.down * 0.2f, lockTarget.bodyTransform.up * 10000f, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
+                SendBarrelProjectile(gunLockedPlayer.transform.position + Vector3.down * 0.2f, gunLockedPlayer.bodyTransform.up * 10000f, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)), new RaiseEventOptions { TargetActors = new[] { TargetRig.GetPlayer().ActorNumber } });
         }
 
         public static void BarrelGun()
@@ -4729,8 +4139,10 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
+                GameObject GunPointer = GunData.GunPointer;
+
                 if (GetGunInput(true))
-                    SendBarrelProjectile(GunData.NewPointer.transform.position + Vector3.up, Vector3.zero, Quaternion.identity);
+                    SendBarrelProjectile(GunPointer.transform.position + Vector3.up, Vector3.zero, Quaternion.identity);
             }
         }
 
@@ -4787,32 +4199,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    Vector3 targetDirection = new Vector3(-71.33718f, 101.4977f, -93.09029f) - lockTarget.headMesh.transform.position;
-                    SendBarrelProjectile(lockTarget.transform.position + (lockTarget.headMesh.transform.position - new Vector3(-71.33718f, 101.4977f, -93.09029f)).normalized * 0.1f, targetDirection.normalized * 50f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { lockTarget.GetPlayer().ActorNumber } });
-                }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
+                    Vector3 targetDirection = new Vector3(-71.33718f, 101.4977f, -93.09029f) - gunLockedPlayer.headMesh.transform.position;
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + (gunLockedPlayer.headMesh.transform.position - new Vector3(-71.33718f, 101.4977f, -93.09029f)).normalized * 0.1f, targetDirection.normalized * 50f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } });
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -4831,29 +4228,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendBarrelProjectile(lockTarget.transform.position + (GorillaTagger.Instance.headCollider.transform.position - lockTarget.headMesh.transform.position).normalized * 0.1f, (GorillaTagger.Instance.bodyCollider.transform.position - lockTarget.transform.position).normalized * 5000f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { NetPlayerToPlayer(lockTarget.GetPlayer()).ActorNumber } });
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + (GorillaTagger.Instance.headCollider.transform.position - gunLockedPlayer.headMesh.transform.position).normalized * 0.1f, (GorillaTagger.Instance.bodyCollider.transform.position - gunLockedPlayer.transform.position).normalized * 5000f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { NetPlayerToPlayer(gunLockedPlayer.GetPlayer()).ActorNumber } });
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -4867,29 +4249,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    SendBarrelProjectile(lockTarget.transform.position + (lockTarget.transform.position - new Vector3(-71.14215f, 13.73829f, -95.17883f)).normalized * 0.1f, (new Vector3(-71.14215f, 13.73829f, -95.17883f) - lockTarget.transform.position).normalized * 5000f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { NetPlayerToPlayer(lockTarget.GetPlayer()).ActorNumber } });
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
+                if (gunLockedPlayer != null)
+                    SendBarrelProjectile(gunLockedPlayer.transform.position + (gunLockedPlayer.transform.position - new Vector3(-71.14215f, 13.73829f, -95.17883f)).normalized * 0.1f, (new Vector3(-71.14215f, 13.73829f, -95.17883f) - gunLockedPlayer.transform.position).normalized * 5000f, Quaternion.identity, new RaiseEventOptions { TargetActors = new[] { NetPlayerToPlayer(gunLockedPlayer.GetPlayer()).ActorNumber } });
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -4977,15 +4344,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > kickDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        NetPlayer player = GetPlayerFromVRRig(gunTarget);
+                        NetPlayer player = GetPlayerFromVRRig(gunLockedPlayer);
                         kickDelay = Time.time + 0.5f;
 
                         if (!GorillaComputer.instance.friendJoinCollider.playerIDsCurrentlyTouching.Contains(player.UserId))
@@ -5049,18 +4414,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > elevatorKickDelay)
+                    if (gunLockedPlayer && Time.time > elevatorKickDelay)
                     {
                         elevatorKickDelay = Time.time + 0.5f;
 
                         if (PhotonNetwork.IsMasterClient)
-                            SpecialTimeRPC(GRElevatorManager._instance.photonView, -750, "RemoteActivateTeleport", new RaiseEventOptions { TargetActors = new[] { gunTarget.GetPlayer().ActorNumber } }, (int)GRElevatorManager._instance.currentLocation, 3, GRElevatorManager.LowestActorNumberInElevator());
+                            SpecialTimeRPC(GRElevatorManager._instance.photonView, -750, "RemoteActivateTeleport", new RaiseEventOptions { TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber } }, (int)GRElevatorManager._instance.currentLocation, 3, GRElevatorManager.LowestActorNumberInElevator());
                         else
                             GRElevatorManager._instance.SendRPC("RemoteElevatorButtonPress", RpcTarget.MasterClient, new[] { 3, (int)GRElevatorManager._instance.currentLocation });
 
@@ -5175,16 +4538,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > greyZoneDelay)
+                    if (gunLockedPlayer && Time.time > greyZoneDelay)
                     {
                         greyZoneDelay = Time.time + 0.1f;
-                        ActivateGreyZone(status, gunTarget.GetPhotonPlayer());
+                        ActivateGreyZone(status, gunLockedPlayer.GetPhotonPlayer());
                     }
                 }
             }
@@ -5390,36 +4751,29 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                     OptimizeEvents = true;
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        if (lockTarget == null && FriendshipGroupDetection.Instance.IsInMyGroup(gunTarget.GetPlayer().UserId))
+                        if (FriendshipGroupDetection.Instance.IsInMyGroup(gunLockedPlayer.GetPlayer().UserId))
                         {
                             for (int i = 0; i < 3970; i++)
-                                FriendshipGroupDetection.Instance.photonView.RPC("RequestPartyGameMode", gunTarget.GetPhotonPlayer(),
+                                FriendshipGroupDetection.Instance.photonView.RPC("RequestPartyGameMode", gunLockedPlayer.GetPhotonPlayer(),
                                     new object[] { GameMode.gameModeKeyByName.Keys.ToArray()[Random.Range(0, GameMode.gameModeKeyByName.Keys.Count)] });
 
                             RPCProtection();
                         }
-
-                        gunLocked = true;
-                        lockTarget = gunTarget;
                     }
                 }
             }
             else
             {
                 OptimizeEvents = false;
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -5570,15 +4924,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > destroyDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        DestroyPlayer(NetPlayerToPlayer(GetPlayerFromVRRig(gunTarget)));
+                        DestroyPlayer(NetPlayerToPlayer(GetPlayerFromVRRig(gunLockedPlayer)));
                         destroyDelay = Time.time + 0.5f;
                     }
                 }
@@ -5707,17 +5059,15 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true))
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > rockDebounce)
+                    if (gunLockedPlayer && Time.time > rockDebounce)
                     {
                         rockDebounce = Time.time + 0.1f;
                         if (PhotonNetwork.IsMasterClient)
-                            AddRock(GetPlayerFromVRRig(gunTarget));
+                            AddRock(GetPlayerFromVRRig(gunLockedPlayer));
                         else
                             NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                     }
@@ -5827,15 +5177,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > slowDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        NetPlayer player = GetPlayerFromVRRig(gunTarget);
+                        NetPlayer player = GetPlayerFromVRRig(gunLockedPlayer);
                         BetaSetStatus(RoomSystem.StatusEffects.TaggedTime, new RaiseEventOptions { TargetActors = new[] { player.ActorNumber } });
                         RPCProtection();
                         slowDelay = Time.time + 1f;
@@ -5918,15 +5266,13 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
                 if (GetGunInput(true) && Time.time > vibrateDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (gunLockedPlayer)
                     {
-                        NetPlayer owner = GetPlayerFromVRRig(gunTarget);
+                        NetPlayer owner = GetPlayerFromVRRig(gunLockedPlayer);
                         BetaSetStatus(RoomSystem.StatusEffects.JoinedTaggedTime, new RaiseEventOptions { TargetActors = new[] { owner.ActorNumber } });
                         RPCProtection();
                         vibrateDelay = Time.time + 0.5f;
@@ -6001,37 +5347,21 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
                     foreach (GliderHoldable glider in GetAllType<GliderHoldable>())
                     {
                         if (glider.GetView.Owner == PhotonNetwork.LocalPlayer)
                         {
-                            glider.gameObject.transform.position = lockTarget.headMesh.transform.position;
+                            glider.gameObject.transform.position = gunLockedPlayer.headMesh.transform.position;
                             glider.gameObject.transform.rotation = Quaternion.Euler(new Vector3(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)));
                         }
                         else
                             glider.OnHover(null, null);
                     }
                 }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -6061,31 +5391,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    GorillaTagger.Instance.myVRRig.SendRPC("RPC_PlayHandTap", lockTarget.GetPlayer(), 111, false, 999999f);
+                    GorillaTagger.Instance.myVRRig.SendRPC("RPC_PlayHandTap", gunLockedPlayer.GetPlayer(), 111, false, 999999f);
                     RPCProtection();
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    VRRig.LocalRig.enabled = true;
-                }
+                VRRig.LocalRig.enabled = true;
             }
         }
 
@@ -6158,7 +5474,7 @@ namespace Seralyth.Mods
             {
                 var GunData = RenderGun();
                 RaycastHit Ray = GunData.Ray;
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -6353,7 +5669,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true) && Time.time > RopeDelay)
                 {
@@ -6364,7 +5680,7 @@ namespace Seralyth.Mods
                     if (rope == null)
                         return;
 
-                    BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                    BetaSetRopeVelocity(rope, (GunPointer.transform.position - rope.transform.position).normalized * 100f);
                 }
             }
         }
@@ -6374,7 +5690,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true) && Time.time > RopeDelay)
                 {
@@ -6385,7 +5701,7 @@ namespace Seralyth.Mods
                     if (rope == null)
                         return;
 
-                    BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                    BetaSetRopeVelocity(rope, (GunPointer.transform.position - rope.transform.position).normalized * 100f);
                 }
             }
         }
@@ -6395,7 +5711,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true) && Time.time > RopeDelay)
                 {
@@ -6406,7 +5722,7 @@ namespace Seralyth.Mods
                     if (rope == null)
                         return;
 
-                    BetaSetRopeVelocity(rope, (NewPointer.transform.position - rope.transform.position).normalized * 100f);
+                    BetaSetRopeVelocity(rope, (GunPointer.transform.position - rope.transform.position).normalized * 100f);
                 }
             }
         }
@@ -6530,7 +5846,7 @@ namespace Seralyth.Mods
             {
                 var GunData = RenderGun();
                 RaycastHit Ray = GunData.Ray;
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -6540,7 +5856,7 @@ namespace Seralyth.Mods
                         if (critters.Length > 0)
                         {
                             CrittersPawn critter = critters[0];
-                            critter.transform.position = NewPointer.transform.position;
+                            critter.transform.position = GunPointer.transform.position;
                             int actorId = critter.actorId;
                             CrittersManager.instance.TriggerEvent(critterEvent, actorId, critter.transform.position, Quaternion.LookRotation(critter.transform.up));
                         }
@@ -6589,7 +5905,7 @@ namespace Seralyth.Mods
                         {
                             critterGrabDelay = Time.time + 0.05f;
 
-                            critter.transform.position = NewPointer.transform.position + Ray.normal;
+                            critter.transform.position = GunPointer.transform.position + Ray.normal;
                             critter.transform.rotation = RandomQuaternion();
 
                             if (critter)
@@ -6725,7 +6041,7 @@ namespace Seralyth.Mods
             if (GetGunInput(false))
             {
                 var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
@@ -6734,7 +6050,7 @@ namespace Seralyth.Mods
                         List<CrittersPawn> critters = CrittersManager.instance.crittersPawns.Where(critter => critter != null).ToList();
 
                         CrittersPawn targetCritter = critters[Random.Range(0, critters.Count)];
-                        targetCritter.transform.position = NewPointer.transform.position;
+                        targetCritter.transform.position = GunPointer.transform.position;
                         targetCritter.transform.rotation = RandomQuaternion();
                     }
                     else
@@ -6765,7 +6081,7 @@ namespace Seralyth.Mods
                         {
                             critterGrabDelay = Time.time + 0.05f;
 
-                            critter.transform.position = NewPointer.transform.position + Vector3.up;
+                            critter.transform.position = GunPointer.transform.position + Vector3.up;
                             critter.transform.rotation = RandomQuaternion();
 
                             if (localGrabber != null)
@@ -6854,31 +6170,31 @@ namespace Seralyth.Mods
             {
                 var GunData = RenderGun();
                 RaycastHit Ray = GunData.Ray;
-                GameObject NewPointer = GunData.NewPointer;
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
                     if (PhotonNetwork.IsMasterClient)
                     {
                         CrittersActor Object = CrittersManager.instance.SpawnActor(type);
-                        Object.MoveActor(NewPointer.transform.position + Vector3.up, RandomQuaternion());
+                        Object.MoveActor(GunPointer.transform.position + Vector3.up, RandomQuaternion());
                     }
                     else
                     {
                         Vector3 velocity = Vector3.zero;
-                        Vector3 position = NewPointer.transform.position + Vector3.up;
+                        Vector3 position = GunPointer.transform.position + Vector3.up;
 
                         switch (type)
                         {
                             case CrittersActor.CrittersActorType.LoudNoise:
                                 type = CrittersActor.CrittersActorType.NoiseMaker;
                                 velocity = Ray.normal * -20f;
-                                position = NewPointer.transform.position + Ray.normal;
+                                position = GunPointer.transform.position + Ray.normal;
                                 break;
                             case CrittersActor.CrittersActorType.StickyGoo:
                                 type = CrittersActor.CrittersActorType.StickyTrap;
                                 velocity = Ray.normal * -20f;
-                                position = NewPointer.transform.position + Ray.normal;
+                                position = GunPointer.transform.position + Ray.normal;
                                 break;
                         }
 

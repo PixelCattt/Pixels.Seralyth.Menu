@@ -561,8 +561,8 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun(GTPlayer.Instance.locomotionEnabledLayers);
-                GameObject NewPointer = GunData.NewPointer;
+                var GunData = RenderGun();
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (trailRenderer == null)
                 {
@@ -588,7 +588,7 @@ namespace Seralyth.Mods
                 }
 
                 trailRenderer.emitting = GetGunInput(true);
-                trailRenderer.gameObject.transform.position = NewPointer.transform.position;
+                trailRenderer.gameObject.transform.position = GunPointer.transform.position;
             }
         }
 
@@ -907,34 +907,23 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    NotificationManager.information["Name"] = lockTarget.GetName();
-                    NotificationManager.information["Color"] = lockTarget.GetColor().ToRGBString();
-                    NotificationManager.information["ID"] = lockTarget.GetPlayer().UserId;
-                    NotificationManager.information["Platform"] = lockTarget.GetPlatform().ToString();
-                    NotificationManager.information["Ping"] = lockTarget.GetPing().ToString();
-                    NotificationManager.information["FPS"] = lockTarget.fps.ToString();
-                    NotificationManager.information["Creation Date"] = lockTarget.GetCreationDate();
-                    NotificationManager.information["Turn"] = $"{lockTarget.turnType.ToTitleCase()} {lockTarget.turnFactor}";
-                }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
+                    NotificationManager.information["Name"] = gunLockedPlayer.GetName();
+                    NotificationManager.information["Color"] = gunLockedPlayer.GetColor().ToRGBString();
+                    NotificationManager.information["ID"] = gunLockedPlayer.GetPlayer().UserId;
+                    NotificationManager.information["Platform"] = gunLockedPlayer.GetPlatform().ToString();
+                    NotificationManager.information["Ping"] = gunLockedPlayer.GetPing().ToString();
+                    NotificationManager.information["FPS"] = gunLockedPlayer.fps.ToString();
+                    NotificationManager.information["Creation Date"] = gunLockedPlayer.GetCreationDate();
+                    NotificationManager.information["Turn"] = $"{gunLockedPlayer.turnType.ToTitleCase()} {gunLockedPlayer.turnFactor}";
                 }
             }
             else
             {
-                if (gunLocked)
+                if (gunLockedPlayer != null)
                 {
                     NotificationManager.information.Remove("Name");
                     NotificationManager.information.Remove("Color");

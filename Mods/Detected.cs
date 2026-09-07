@@ -90,35 +90,32 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
-                if (GetGunInput(true))
+                var GunData = RenderGun(true);
+
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    PhotonView view = gunLockedPlayer.GetPhotonView();
+                    if (view != null)
                     {
-                        PhotonView view = gunTarget.GetPhotonView();
-                        if (view != null)
+                        Destroy(gunLockedPlayer, new Hashtable
                         {
-                            Destroy(gunTarget, new Hashtable
+                            { 0, view.ViewID }
+                        }, new RaiseEventOptions
+                        {
+                            TargetActors = PhotonNetwork.PlayerList.Where(p => p != view.Owner).Select(p => p.ActorNumber).ToArray()
+                        });
+
+                        foreach (VRRig rig in VRRigExtensions.ActiveRigs)
+                        {
+                            if (rig != gunLockedPlayer)
                             {
-                                { 0, view.ViewID }
-                            }, new RaiseEventOptions
-                            {
-                                TargetActors = PhotonNetwork.PlayerList.Where(p => p != view.Owner).Select(p => p.ActorNumber).ToArray()
-                            });
-                            foreach (VRRig rig in VRRigExtensions.ActiveRigs)
-                            {
-                                if (rig != gunTarget)
+                                Destroy(rig, new Hashtable 
                                 {
-                                    Destroy(rig, new Hashtable
-                                    {
-                                        { 0, rig.GetPhotonView().ViewID }
-                                    }, new RaiseEventOptions
-                                    {
-                                        TargetActors = new[] { gunTarget.GetPlayer().ActorNumber }
-                                    });
-                                }
+                                    { 0, rig.GetPhotonView().ViewID }
+                                }, new RaiseEventOptions
+                                {
+                                    TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber }
+                                });
                             }
                         }
                     }
@@ -293,26 +290,21 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    PhotonView view = gunLockedPlayer.GetPhotonView();
+                    if (view != null)
                     {
-                        PhotonView view = gunTarget.GetPhotonView();
-                        if (view != null)
+                        viewIdArchive[gunLockedPlayer] = view.ViewID;
+                        Destroy(gunLockedPlayer, new Hashtable
                         {
-                            viewIdArchive[gunTarget] = view.ViewID;
-                            Destroy(gunTarget, new Hashtable
-                            {
-                                { 0, view.ViewID }
-                            }, new RaiseEventOptions
-                            {
-                                TargetActors = PhotonNetwork.PlayerList.Where(p => p != view.Owner).Select(p => p.ActorNumber).ToArray()
-                            });
-                        }
+                            { 0, view.ViewID }
+                        }, new RaiseEventOptions
+                        {
+                            TargetActors = PhotonNetwork.PlayerList.Where(p => p != view.Owner).Select(p => p.ActorNumber).ToArray()
+                        });
                     }
                 }
             }
@@ -479,17 +471,12 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        int viewID = viewIdArchive[gunTarget];
-                        Destroy(gunTarget, null, null, viewID);
-                    }
+                    int viewID = viewIdArchive[gunLockedPlayer];
+                    Destroy(gunLockedPlayer, null, null, viewID);
                 }
             }
         }
@@ -544,28 +531,23 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    foreach (VRRig rig in VRRigExtensions.ActiveRigs)
                     {
-                        foreach (VRRig rig in VRRigExtensions.ActiveRigs)
+                        bool includeLocal = !Buttons.GetIndex("Isolate Others").enabled || !rig.IsLocal();
+                        PhotonView view = GetPhotonViewFromVRRig(rig);
+                        if (includeLocal && rig != gunLockedPlayer)
                         {
-                            bool includeLocal = !Buttons.GetIndex("Isolate Others").enabled || !rig.IsLocal();
-                            PhotonView view = GetPhotonViewFromVRRig(rig);
-                            if (includeLocal && rig != gunTarget)
+                            Destroy(rig, new Hashtable
                             {
-                                Destroy(rig, new Hashtable
-                                {
-                                    { 0, view.ViewID }
-                                }, new RaiseEventOptions
-                                {
-                                    TargetActors = new[] { gunTarget.GetPlayer().ActorNumber }
-                                });
-                            }
+                                { 0, view.ViewID }
+                            }, new RaiseEventOptions
+                            {
+                                TargetActors = new[] { gunLockedPlayer.GetPlayer().ActorNumber }
+                            });
                         }
                     }
                 }
@@ -658,26 +640,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    Destroy(lockTarget.GetPhotonPlayer());
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    Destroy(gunLockedPlayer.GetPhotonPlayer());
             }
         }
 
@@ -723,32 +689,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (Time.time > muteDelay)
                     {
-                        Destroy(lockTarget.GetPhotonPlayer());
+                        Destroy(gunLockedPlayer.GetPhotonPlayer());
                         muteDelay = Time.time + 0.15f;
                     }
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -797,8 +747,6 @@ namespace Seralyth.Mods
                     muteDelay = Time.time + 0.15f;
                 }
             }
-
-
         }
 
         public static string name = "SERALYTH";
@@ -810,32 +758,16 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     Hashtable hashtable = new Hashtable
                     {
                         [ActorProperties.PlayerName] = name
                     };
-                    PhotonNetwork.CurrentRoom.LoadBalancingClient.OpSetPropertiesOfActor(lockTarget.GetPlayer().ActorNumber, hashtable);
+                    PhotonNetwork.CurrentRoom.LoadBalancingClient.OpSetPropertiesOfActor(gunLockedPlayer.GetPlayer().ActorNumber, hashtable);
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -899,33 +831,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     Hashtable hashtable = new Hashtable
                     {
                         [ActorProperties.PlayerName] = GorillaComputer.instance.anywhereTwoWeek[Random.Range(0, GorillaComputer.instance.anywhereTwoWeek.Length)]
                     };
-                    PhotonNetwork.CurrentRoom.LoadBalancingClient.OpSetPropertiesOfActor(lockTarget.GetPlayer().ActorNumber, hashtable);
-                    MonkeAgent.instance.SendReport("evading the name ban", lockTarget.GetPlayer().UserId, lockTarget.GetPlayer().NickName);
+                    PhotonNetwork.CurrentRoom.LoadBalancingClient.OpSetPropertiesOfActor(gunLockedPlayer.GetPlayer().ActorNumber, hashtable);
+                    MonkeAgent.instance.SendReport("evading the name ban", gunLockedPlayer.GetPlayer().UserId, gunLockedPlayer.GetPlayer().NickName);
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -947,32 +863,26 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null && Time.time > customPropertyDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > customPropertyDelay)
-                    {
-                        customPropertyDelay = Time.time + 0.25f;
+                    customPropertyDelay = Time.time + 0.25f;
 
-                        var player = gunTarget.GetPhotonPlayer();
-                        if (player == null) return;
+                    var player = gunLockedPlayer.GetPhotonPlayer();
+                    if (player == null) return;
 
-                        if (player.CustomProperties == null || player.CustomProperties.Count == 0) return;
+                    if (player.CustomProperties == null || player.CustomProperties.Count == 0) return;
 
-                        Hashtable toRemove = new Hashtable();
+                    Hashtable toRemove = new Hashtable();
 
-                        foreach (var key in from keyObj in player.CustomProperties.Keys.ToList() select keyObj?.ToString() into key where key != null where !key.Equals(PlayerConfig.Player_HasDoneTutorial) select key)
-                            toRemove[key] = null;
+                    foreach (var key in from keyObj in player.CustomProperties.Keys.ToList() select keyObj?.ToString() into key where key != null where !key.Equals(PlayerConfig.Player_HasDoneTutorial) select key)
+                        toRemove[key] = null;
 
-                        if (toRemove.Count > 0)
-                            player.SetCustomProperties(toRemove);
-                    }
+                    if (toRemove.Count > 0)
+                        player.SetCustomProperties(toRemove);
                 }
             }
-
         }
 
         public static void BypassModCheckersAll()
@@ -1051,22 +961,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null && Time.time > customPropertyDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > customPropertyDelay)
-                    {
-                        customPropertyDelay = Time.time + 0.25f;
+                    customPropertyDelay = Time.time + 0.25f;
 
-                        Hashtable props = new Hashtable();
-                        foreach (string mod in Visuals.modDictionary.Keys)
-                            props[mod] = true;
+                    Hashtable props = new Hashtable();
+                    foreach (string mod in Visuals.modDictionary.Keys)
+                        props[mod] = true;
 
-                        gunTarget.GetPhotonPlayer().SetCustomProperties(props);
-                    }
+                    gunLockedPlayer.GetPhotonPlayer().SetCustomProperties(props);
                 }
             }
         }
@@ -1128,19 +1033,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null && Time.time > customPropertyDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > customPropertyDelay)
-                    {
-                        customPropertyDelay = Time.time + 0.25f;
+                    customPropertyDelay = Time.time + 0.25f;
 
-                        Hashtable props = new Hashtable { { PlayerConfig.Player_HasDoneTutorial, true } };
-                        gunTarget.GetPhotonPlayer().SetCustomProperties(props);
-                    }
+                    Hashtable props = new Hashtable { { PlayerConfig.Player_HasDoneTutorial, true } };
+                    gunLockedPlayer.GetPhotonPlayer().SetCustomProperties(props);
                 }
             }
         }
@@ -1195,19 +1095,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null && Time.time > customPropertyDelay)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && Time.time > customPropertyDelay)
-                    {
-                        customPropertyDelay = Time.time + 0.25f;
+                    customPropertyDelay = Time.time + 0.25f;
 
-                        Hashtable props = new Hashtable { { PlayerConfig.Player_HasDoneTutorial, false } };
-                        gunTarget.GetPhotonPlayer().SetCustomProperties(props);
-                    }
+                    Hashtable props = new Hashtable { { PlayerConfig.Player_HasDoneTutorial, false } };
+                    gunLockedPlayer.GetPhotonPlayer().SetCustomProperties(props);
                 }
             }
         }

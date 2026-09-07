@@ -81,30 +81,14 @@ namespace Seralyth.Mods.CustomMaps.Maps
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null && Time.time > killDelay)
+                if (gunLockedPlayer != null && Time.time > killDelay)
                 {
-                    NetPlayer Player = lockTarget.GetPlayer();
+                    NetPlayer Player = gunLockedPlayer.GetPlayer();
                     KillPlayer(Player.ActorNumber);
                     killDelay = Time.time + 0.2f;
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -207,36 +191,22 @@ namespace Seralyth.Mods.CustomMaps.Maps
             }, SendOptions.SendReliable);
             RPCProtection();
         }
+
         public static void CrashGun()
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null && Time.time > crashDelay)
+                if (gunLockedPlayer != null && Time.time > crashDelay)
                 {
-                    NetPlayer Player = lockTarget.GetPlayer();
+                    NetPlayer Player = gunLockedPlayer.GetPlayer();
                     CrashPlayer(Player.ActorNumber);
                     crashDelay = Time.time + 0.2f;
                 }
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
+
         public static void CrashAura()
         {
             if (Time.time < crashDelay)
@@ -260,6 +230,7 @@ namespace Seralyth.Mods.CustomMaps.Maps
                 crashDelay = Time.time + 0.2f;
             }
         }
+
         public static void CrashOnTouch()
         {
             if (Time.time < crashDelay)
@@ -270,6 +241,7 @@ namespace Seralyth.Mods.CustomMaps.Maps
                 crashDelay = Time.time + 0.2f;
             }
         }
+
         public static void CrashWhenTouched()
         {
             if (Time.time < crashDelay)
@@ -280,6 +252,7 @@ namespace Seralyth.Mods.CustomMaps.Maps
                 crashDelay = Time.time + 0.2f;
             }
         }
+
         public static void CrashAll()
         {
             if (!(Time.time > crashDelay)) return;
@@ -288,6 +261,7 @@ namespace Seralyth.Mods.CustomMaps.Maps
 
             crashDelay = Time.time + 0.1f;
         }
+
         public static void AntiReportCrash()
         {
             Safety.AntiReport((vrrig, position) =>

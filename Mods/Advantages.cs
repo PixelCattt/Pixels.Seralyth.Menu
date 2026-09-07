@@ -193,10 +193,9 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (!NetworkSystem.Instance.IsMasterClient)
                         NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
@@ -205,25 +204,13 @@ namespace Seralyth.Mods
                         if (Time.time > spamTagDelay)
                         {
                             spamTagDelay = Time.time + 0.1f;
-                            if (InfectedList().Contains(lockTarget.GetPlayer()))
-                                RemoveInfected(lockTarget.GetPlayer());
+                            if (InfectedList().Contains(gunLockedPlayer.GetPlayer()))
+                                RemoveInfected(gunLockedPlayer.GetPlayer());
                             else
-                                AddInfected(lockTarget.GetPlayer());
+                                AddInfected(gunLockedPlayer.GetPlayer());
                         }
                     }
                 }
-
-                if (!GetGunInput(true)) return;
-                VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                if (!gunTarget || gunTarget.IsLocal()) return;
-                if (!PhotonNetwork.IsMasterClient) return;
-                gunLocked = true;
-                lockTarget = gunTarget;
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -249,37 +236,25 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (PhotonNetwork.IsMasterClient)
                     {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            if (lockTarget != null)
-                                ReportTagPatch.blacklistedPlayers.Remove(lockTarget.GetPlayer());
+                        if (gunLockedPlayer != null)
+                            ReportTagPatch.blacklistedPlayers.Remove(gunLockedPlayer.GetPlayer());
 
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-
-                            ReportTagPatch.blacklistedPlayers.Add(GetPlayerFromVRRig(gunTarget));
-
-                        }
-                        else
-                            NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
+                        ReportTagPatch.blacklistedPlayers.Add(gunLockedPlayer.GetPlayer());
                     }
+                    else
+                        NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    ReportTagPatch.blacklistedPlayers.Remove(lockTarget.GetPlayer());
-                }
+                if (gunLockedPlayer != null)
+                    ReportTagPatch.blacklistedPlayers.Remove(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -287,37 +262,25 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    if (PhotonNetwork.IsMasterClient)
                     {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            if (lockTarget != null)
-                                ReportTagPatch.invinciblePlayers.Remove(lockTarget.GetPlayer());
+                        if (gunLockedPlayer != null)
+                            ReportTagPatch.invinciblePlayers.Remove(gunLockedPlayer.GetPlayer());
 
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-
-                            ReportTagPatch.invinciblePlayers.Add(GetPlayerFromVRRig(gunTarget));
-
-                        }
-                        else
-                            NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
+                        ReportTagPatch.invinciblePlayers.Add(gunLockedPlayer.GetPlayer());
                     }
+                    else
+                        NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
-                    ReportTagPatch.invinciblePlayers.Remove(lockTarget.GetPlayer());
-                }
+                if (gunLockedPlayer != null)
+                    ReportTagPatch.invinciblePlayers.Remove(gunLockedPlayer.GetPlayer());
             }
         }
 
@@ -377,26 +340,10 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
-                    TagAuraPlayer(lockTarget);
-
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        gunLocked = true;
-                        lockTarget = gunTarget;
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
+                    TagAuraPlayer(gunLockedPlayer);
             }
         }
 
@@ -435,26 +382,25 @@ namespace Seralyth.Mods
 
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
-                    if (!lockTarget.IsTagged())
+                    if (!gunLockedPlayer.IsTagged())
                     {
                         VRRig.LocalRig.enabled = false;
 
                         if (!Buttons.GetIndex("Obnoxious Tag").enabled)
-                            VRRig.LocalRig.transform.position = lockTarget.transform.position - new Vector3(0f, 3f, 0f);
+                            VRRig.LocalRig.transform.position = gunLockedPlayer.transform.position - new Vector3(0f, 3f, 0f);
                         else
                         {
-                            Vector3 position = lockTarget.transform.position + RandomVector3();
+                            Vector3 position = gunLockedPlayer.transform.position + RandomVector3();
 
                             VRRig.LocalRig.transform.position = position;
 
                             VRRig.LocalRig.head.rigTarget.transform.rotation = RandomQuaternion();
-                            VRRig.LocalRig.leftHand.rigTarget.transform.position = lockTarget.transform.position + RandomVector3();
-                            VRRig.LocalRig.rightHand.rigTarget.transform.position = lockTarget.transform.position + RandomVector3();
+                            VRRig.LocalRig.leftHand.rigTarget.transform.position = gunLockedPlayer.transform.position + RandomVector3();
+                            VRRig.LocalRig.rightHand.rigTarget.transform.position = gunLockedPlayer.transform.position + RandomVector3();
 
                             VRRig.LocalRig.leftHand.rigTarget.transform.rotation = RandomQuaternion();
                             VRRig.LocalRig.rightHand.rigTarget.transform.rotation = RandomQuaternion();
@@ -476,38 +422,19 @@ namespace Seralyth.Mods
                             VRRig.LocalRig.rightThumb.LerpFinger(1f, false);
                         }
 
-                        if (ValidateTag(lockTarget))
-                            ReportTag(lockTarget);
+                        if (ValidateTag(gunLockedPlayer))
+                            ReportTag(gunLockedPlayer);
                     }
                     else
                     {
-                        gunLocked = false;
                         VRRig.LocalRig.enabled = true;
-                    }
-                }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        if (PhotonNetwork.IsMasterClient)
-                            AddInfected(GetPlayerFromVRRig(gunTarget));
-                        else
-                        {
-                            if (!VRRig.LocalRig.IsTagged()) return;
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-                        }
                     }
                 }
             }
             else
             {
-                if (gunLocked)
-                {
-                    gunLocked = false;
+                if (gunLockedPlayer != null)
                     VRRig.LocalRig.enabled = true;
-                }
             }
         }
 
@@ -563,8 +490,8 @@ namespace Seralyth.Mods
                     VRRig.LocalRig.transform.position = position;
 
                     VRRig.LocalRig.head.rigTarget.transform.rotation = RandomQuaternion();
-                    VRRig.LocalRig.leftHand.rigTarget.transform.position = lockTarget.transform.position + RandomVector3();
-                    VRRig.LocalRig.rightHand.rigTarget.transform.position = lockTarget.transform.position + RandomVector3();
+                    VRRig.LocalRig.leftHand.rigTarget.transform.position = gunLockedPlayer.transform.position + RandomVector3();
+                    VRRig.LocalRig.rightHand.rigTarget.transform.position = gunLockedPlayer.transform.position + RandomVector3();
 
                     VRRig.LocalRig.leftHand.rigTarget.transform.rotation = RandomQuaternion();
                     VRRig.LocalRig.rightHand.rigTarget.transform.rotation = RandomQuaternion();
@@ -595,19 +522,16 @@ namespace Seralyth.Mods
 
         public static void UntagGun()
         {
-
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal() && gunTarget.IsTagged())
+                    if (gunLockedPlayer.IsTagged())
                     {
                         if (PhotonNetwork.IsMasterClient)
-                            RemoveInfected(GetPlayerFromVRRig(gunTarget));
+                            RemoveInfected(GetPlayerFromVRRig(gunLockedPlayer));
                         else
                             NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
                     }
@@ -619,12 +543,12 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                GameObject NewPointer = GunData.NewPointer;
+                var GunData = RenderGun(true);
+                GameObject GunPointer = GunData.GunPointer;
 
                 if (GetGunInput(true))
                 {
-                    GTPlayer.Instance.GetControllerTransform(false).position = NewPointer.transform.position;
+                    GTPlayer.Instance.GetControllerTransform(false).position = GunPointer.transform.position;
 
                     if (Vector3.Distance(GTPlayer.Instance.GetControllerTransform(false).position, GorillaTagger.Instance.bodyCollider.transform.position) > 4f)
                         GTPlayer.Instance.GetControllerTransform(false).position = GorillaTagger.Instance.bodyCollider.transform.position + (GTPlayer.Instance.GetControllerTransform(false).position - GorillaTagger.Instance.bodyCollider.transform.position) * 4f;
@@ -748,19 +672,14 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true) && Time.time > tagGunDelay)
+                if (gunLockedPlayer != null && Time.time > tagGunDelay)
                 {
                     try
                     {
-                        VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                        if (gunTarget && !gunTarget.IsLocal())
-                        {
-                            tagGunDelay = Time.time + 0.2f;
-                            InstantTagPlayer(NetPlayerToPlayer(GetPlayerFromVRRig(gunTarget)));
-                        }
+                        tagGunDelay = Time.time + 0.2f;
+                        InstantTagPlayer(NetPlayerToPlayer(GetPlayerFromVRRig(gunLockedPlayer)));
                     }
                     catch { }
                 }
@@ -954,10 +873,9 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (gunLocked && lockTarget != null)
+                if (gunLockedPlayer != null)
                 {
                     if (!NetworkSystem.Instance.IsMasterClient)
                         NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
@@ -977,23 +895,6 @@ namespace Seralyth.Mods
                         }
                     }
                 }
-                if (GetGunInput(true))
-                {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
-                    {
-                        if (PhotonNetwork.IsMasterClient)
-                        {
-                            gunLocked = true;
-                            lockTarget = gunTarget;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (gunLocked)
-                    gunLocked = false;
             }
         }
 
@@ -1018,22 +919,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    NetPlayer owner = GetPlayerFromVRRig(gunLockedPlayer);
+                    if (!NetworkSystem.Instance.IsMasterClient)
+                        NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
+                    else
                     {
-                        NetPlayer owner = GetPlayerFromVRRig(gunTarget);
-                        if (!NetworkSystem.Instance.IsMasterClient)
-                            NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
-                        else
-                        {
-                            GorillaPaintbrawlManager brawlManager = (GorillaPaintbrawlManager)GorillaGameManager.instance;
-                            brawlManager.playerLives[owner.ActorNumber] = 0;
-                        }
+                        GorillaPaintbrawlManager brawlManager = (GorillaPaintbrawlManager)GorillaGameManager.instance;
+                        brawlManager.playerLives[owner.ActorNumber] = 0;
                     }
                 }
             }
@@ -1093,22 +989,17 @@ namespace Seralyth.Mods
         {
             if (GetGunInput(false))
             {
-                var GunData = RenderGun();
-                RaycastHit Ray = GunData.Ray;
+                var GunData = RenderGun(true);
 
-                if (GetGunInput(true))
+                if (gunLockedPlayer != null)
                 {
-                    VRRig gunTarget = Ray.collider.GetComponentInParent<VRRig>();
-                    if (gunTarget && !gunTarget.IsLocal())
+                    NetPlayer owner = GetPlayerFromVRRig(gunLockedPlayer);
+                    if (!NetworkSystem.Instance.IsMasterClient)
+                        NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
+                    else
                     {
-                        NetPlayer owner = GetPlayerFromVRRig(gunTarget);
-                        if (!NetworkSystem.Instance.IsMasterClient)
-                            NotificationManager.SendNotification("<color=grey>[</color><color=red>ERROR</color><color=grey>]</color> You are not master client.");
-                        else
-                        {
-                            GorillaPaintbrawlManager brawlManager = (GorillaPaintbrawlManager)GorillaGameManager.instance;
-                            brawlManager.playerLives[owner.ActorNumber] = 4;
-                        }
+                        GorillaPaintbrawlManager brawlManager = (GorillaPaintbrawlManager)GorillaGameManager.instance;
+                        brawlManager.playerLives[owner.ActorNumber] = 4;
                     }
                 }
             }

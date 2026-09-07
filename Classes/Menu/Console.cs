@@ -1671,7 +1671,7 @@ namespace Seralyth.Classes.Menu
             bool sendEvent = (!hadTargetActors || (hadTargetActors && options.TargetActors != null && options.TargetActors.Length > 0));
 
             if (AdminPermissionManager.logOwnCommands)
-                AdminPermissionManager.NotifyCommand(PhotonNetwork.LocalPlayer, command, parameters, true, 0, false, false, false, true, AdminPermissionManager.hideCommandDebugInfo ? null : options, sendEvent);
+                AdminPermissionManager.NotifyCommand(PhotonNetwork.LocalPlayer, command, parameters, true, 0, false, false, true, AdminPermissionManager.hideCommandDebugInfo ? null : options, sendEvent);
 
             if (sendEvent)
             {

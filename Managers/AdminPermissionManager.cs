@@ -105,51 +105,61 @@ namespace Seralyth.Managers
             string command = rawCommand.Trim().ToLower();
 
             int adminType = 0;
-            bool isOwner = false;
-            if (ServerData.Administrators.TryGetValue(sender.UserId, out var administrator))
+            if (ServerData.Administrators.TryGetValue(sender.UserId, out var admin))
             {
                 adminType = 1;
 
-                if (ServerData.SuperAdministrators.Contains(administrator))
+                if (ServerData.SuperAdministrators.Contains(admin))
                     adminType = 2;
 
-                if (ServerData.Owners.Contains(administrator))
+                if (ServerData.Owners.Contains(admin))
                 {
-                    adminType = 2;
-                    isOwner = true;
+                    adminType = 3;
+                }
+            }
+
+            int localAdminType = 0;
+            if (ServerData.Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out var localAdmin))
+            {
+                localAdminType = 1;
+
+                if (ServerData.SuperAdministrators.Contains(localAdmin))
+                    localAdminType = 2;
+
+                if (ServerData.Owners.Contains(localAdmin))
+                {
+                    localAdminType = 3;
                 }
             }
 
             bool commandAllowed = (command == "confirmusing") || (allowedCommandList.Contains(command) && command != "asset-modify") || (assetCMDs.Contains(command) && allowedCommandList.Contains("asset-modify"));
 
-            bool levelBlocked = (adminType == 0 && command != "confirmusing") || (!isOwner && adminType != 2 && superOnlyCMDs.Contains(command)) || (!isOwner && command == "nolog");
+            bool levelBlocked = (adminType == 0 && command != "confirmusing") || (!(adminType >= 2) && superOnlyCMDs.Contains(command)) || (adminType != 3 && command == "nolog");
 
-            bool executionAllowed = commandAllowed && !levelBlocked;
+            bool executionAllowed = blockingEnabled ? (commandAllowed && !levelBlocked) : !levelBlocked;
 
-            bool bypass = blockingEnabled && !executionAllowed && isOwner;
+            bool bypass = blockingEnabled && !executionAllowed && adminType == 3;
 
             if (blockingEnabled)
             {
-                if (executionAllowed || isOwner)
+                if (executionAllowed || adminType == 3)
                     Console.HandleConsoleEvent(sender, command, args);
             }
             else
             {
-                if (!levelBlocked || isOwner)
+                if (!levelBlocked || adminType == 3)
                     Console.HandleConsoleEvent(sender, command, args);
             }
 
-            if (notifyEnabled && (!excludedNotify.Contains(sender) || isOwner || (ServerData.Administrators.TryGetValue(PhotonNetwork.LocalPlayer.UserId, out string localAdminName) && ServerData.SuperAdministrators.Contains(localAdminName))))
-            {
-                if (!(isOwner && command == "nolog"))
-                    NotifyCommand(sender, command, args, executionAllowed, adminType, levelBlocked, bypass, isOwner, false, null, false);
-            }
+
+            if (notifyEnabled && (!excludedNotify.Contains(sender) || localAdminType >= 2) && !(adminType == 3 && command == "nolog"))
+                NotifyCommand(sender, command, args, executionAllowed, adminType, levelBlocked, bypass, false, null, false);
         }
 
-        public static void NotifyCommand(Player sender, string command, object[] args, bool allowed, int adminType, bool levelBlock, bool bypass, bool isOwner, bool isLocal, RaiseEventOptions eventOptions, bool wasSent)
+        public static void NotifyCommand(Player sender, string command, object[] args, bool allowed, int adminType, bool levelBlock, bool bypass, bool isLocal, RaiseEventOptions eventOptions, bool wasSent)
         {
             string adminTypeText = isLocal        ? "<color=orange>LOCAL</color>"
-                                 : isOwner        ? "<color=purple>OWNER</color>"
+                                 : adminType == 3 ? "<color=purple>OWNER</color>"
                                  : adminType == 2 ? "<color=purple>SUPER</color>"
                                  : adminType == 1 ? "<color=yellow>ADMIN</color>"
                                                   : "<color=red>NON-ADMIN</color>";
